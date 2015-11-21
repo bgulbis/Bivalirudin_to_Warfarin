@@ -1,0 +1,305 @@
+---
+title: "Exploratory Analysis"
+author: "Andrea Fetea, Brian Gulbis, Christie Hall"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document: 
+    fig_caption: yes
+    keep_md: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+source("analyze.R")
+library(FSA)
+library(ggplot2)
+library(captioner)
+library(pander)
+panderOptions('table.split.table', Inf)
+```
+
+## Patients
+
+* Patients receiving bivalirudin: `r nrow(pts.identified)`
+* Patients receiving warfarin: `r nrow(tmp.warf.start)`
+* Patients with at least one overlapping dose: `r nrow(tmp.overlap)`
+* Patients meeting inclusion criteria: `r nrow(pts.eligible)`
+* Patients excluded:
+    - Alternate anticoagulant during transition interval: `r nrow(excl.alt.anticoag)`
+    - Bleeding within 48 hours prior to bivalirudin: `r nrow(excl.bleed)`
+    - Diagnosis of liver disease or hypercoaguable condidtion: `r nrow(excl.diag)`
+    - INR >1.5 at time of bivalirudin initiation: `r nrow(excl.inr)`
+    - Vitamin K with 5 days of bivalirudin: `r nrow(excl.vitk)`
+    - Thrombolytics within 48 hours of bivalirudin: `r nrow(excl.tpa)`
+    - Major inducers: `r nrow(excl.inducer)`
+    - Pregnant: `r nrow(excl.preg)`
+* Patients included in study: `r nrow(pts.include)`
+
+### Exclusion Criteria Variables
+
+* Hours of bivalirudin and warfarin overlap: `r ec.overlap`
+* Days prior to bivalirudin with an INR < 1.5: `r ec.inr`
+
+## Demographics
+
+```{r echo=FALSE}
+results <- select(data.demograph, age:disposition, bival.duration:weight, proc.48hrs) %>%
+    mutate(proc.48hrs = as.factor(proc.48hrs))
+cont <- sapply(results, is.numeric)
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+
+## check for normal distribution for continuous variables
+```
+
+## Diagnosis
+
+```{r echo=FALSE}
+results <- select(data.pmh, -pie.id) %>%
+    mutate_each(funs(as.factor))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+### Anticoagulation Indications
+
+As specified in the warfarin goals
+
+```{r echo=FALSE}
+results <- select(data.warf, -pie.id, -indication) %>%
+    mutate_each(funs(as.factor)) 
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+### Bleeding
+
+```{r echo=FALSE}
+results <- select(data.bleed.bival, hgb.drop, bival.drop.diff, warf.drop.diff) 
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Baseline Labs
+
+Most recent lab value prior to bivalirudin initiation (except for the heparin antibody ELISA, which could have been performed at any time)
+
+```{r echo=FALSE}
+results <- select(data.labs.baseline, -pie.id) %>%
+    mutate(elisa = as.factor(elisa))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Serial Lab Values
+
+Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bival cesation
+
+```{r echo=FALSE}
+results <- ungroup(data.labs.serial) %>%
+    select(-pie.id) %>%
+    group_by(lab) %>%
+    do(result = lapply(as.list(.[,-1]), Summarize))
+names(results$result) <- results$lab
+pander(results$result)
+```
+
+## Bivalirudin Infusion
+
+```{r echo=FALSE}
+results <- select(data.bival, -pie.id)
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Medications During Hospitalization
+
+```{r echo=FALSE}
+results <- select(data.meds, -pie.id) %>%
+    mutate_each(funs(as.factor))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Blood Products
+
+```{r echo=FALSE}
+results <- select(data.blood, -pie.id) %>%
+    mutate_each(funs(as.factor))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Reversal Agents
+
+```{r echo=FALSE}
+results <- select(data.reversal, -pie.id) %>%
+    mutate_each(funs(as.factor))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## Primary and Secondary Endpoints
+
+```{r echo=FALSE}
+results <- select(data.labs.coags, -pie.id)
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+```{r echo=FALSE}
+graph <- ggplot(data=results, aes(x=inr.change)) +
+    geom_density()
+graph
+```
+
+```{r echo=FALSE}
+graph <- ggplot(data=results, aes(x=inr.change.stop)) +
+    geom_density()
+graph
+```
+
+```{r echo=FALSE, results="hide"}
+fig.nums <- captioner()
+fig.nums("inr.start", "INR at bivalirudin initiation and first therapeutic aPTT in paired samples")
+fig.nums("inr.stop", "INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples")
+fig.nums("inr.change", "Absolute INR change at bivalirudin initiation and cesation")
+```
+
+```{r echo=FALSE, fig.cap=fig.nums("inr.start")}
+results <- select(data.labs.coags, pie.id, inr.before, inr.txptt) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr.before),
+           !is.na(inr.txptt)) %>%
+    gather(period, inr, inr.before, inr.txptt)
+
+graph <- ggplot(data=results, aes(x=period, y=inr, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme_bw() +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap=fig.nums("inr.stop")}
+results <- select(data.labs.coags, pie.id, inr.before.stop, inr.after.stop) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr.before.stop),
+           !is.na(inr.after.stop)) %>%
+    gather(period, inr, inr.before.stop, inr.after.stop)
+
+graph <- ggplot(data=results, aes(x=period, y=inr, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme_bw() +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap=fig.nums("inr.change")}
+results <- select(data.labs.coags, inr.change, inr.change.stop) %>%
+    rename(bival.start = inr.change,
+           bival.stop = inr.change.stop) %>%
+    mutate(bival.stop = abs(bival.stop)) %>%
+    gather(period, change) %>%
+    filter(!is.na(change))
+
+graph <- ggplot(data=results, aes(x=period, y=change)) +
+    geom_boxplot() + 
+    theme_bw()
+    # theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="INR change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, inr.change, inr.change.stop) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr.change),
+           !is.na(inr.change.stop)) %>%
+    gather(period, change, inr.change, inr.change.stop)
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="INR percent change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, inr.change.prct, inr.change.stop.prct) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr.change.prct),
+           !is.na(inr.change.stop.prct)) %>%
+    gather(period, change, inr.change.prct, inr.change.stop.prct)
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="Comparison of the amount of INR change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, inr.change.prct, inr.change.stop.prct) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr.change.prct),
+           !is.na(inr.change.stop.prct)) %>%
+    gather(period, change, inr.change.prct, inr.change.stop.prct) %>%
+    mutate(change = abs(1 - change))
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="PTT change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, ptt.change, ptt.change.stop) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(ptt.change),
+           !is.na(ptt.change.stop)) %>%
+    gather(period, change, ptt.change, ptt.change.stop)
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="PTT percent change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, ptt.change.prct, ptt.change.stop.prct) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(ptt.change.prct),
+           !is.na(ptt.change.stop.prct)) %>%
+    gather(period, change, ptt.change.prct, ptt.change.stop.prct)
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+```{r echo=FALSE, fig.cap="Comparison of the amount of PTT change at bivalirudin initiation and cesation in paired samples"}
+results <- select(data.labs.coags, pie.id, ptt.change.prct, ptt.change.stop.prct) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(ptt.change.prct),
+           !is.na(ptt.change.stop.prct)) %>%
+    gather(period, change, ptt.change.prct, ptt.change.stop.prct) %>%
+    mutate(change = abs(1 - change))
+
+graph <- ggplot(data=results, aes(x=period, y=change, group=factor(pie.id))) +
+    geom_line(size=1, aes(colour=pie.id)) +
+    geom_point(size=5, pch=21, fill="salmon", alpha=0.5) +
+    theme(legend.position="none")
+graph
+```
+
+Correlation between INR changes and PTT changes
+
+```{r echo=FALSE}
+results <- select(data.labs.coags, inr.change.prct, inr.change.stop.prct, ptt.change.prct, ptt.change.stop.prct) 
+ds1 <- cor(results, use="pairwise.complete.obs")
+pander(ds1)
+```
