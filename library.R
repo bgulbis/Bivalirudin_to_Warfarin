@@ -14,4 +14,7 @@ library(MESS)
 library(FSA)
 library(ggplot2)
 library(pander)
+library(grid)
+library(RColorBrewer)
+library(export)
 

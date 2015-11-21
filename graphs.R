@@ -4,12 +4,7 @@
 ## produces images to be used in Midyear poster
 ##
 
-source("analyze.R")
-library(ggplot2)
-library(grid)
-library(RColorBrewer)
-# library(ReporteRs)
-library(export)
+source("library.R")
 
 results <- select(data.labs.coags, pie.id, inr.before, inr.txptt) %>%
     group_by(pie.id) %>%
@@ -35,20 +30,6 @@ graph
 
 graph2ppt(graph, "export_test.pptx", font="Calibri", width=5, height=25/7)
 
-# win.metafile("fig1.wmf")
-# print(graph)
-# dev.off()
-# library(export)
-
-## ReporteRs example
-## requires more manual input but allows more control?
-# mydoc <- pptx(template="graph_template.pptx")
-# mydoc <- addSlide(mydoc, slide.layout = "Blank")
-# mydoc = addTitle(mydoc, "Figure")
-# mydoc <- addPlot(mydoc, fun=print, x=graph, offx=1, offy=1, width=5, height=25/7, 
-#                  vector.graphic=TRUE, fontname="Calibri") 
-
-## export (requires ReporteRs)
 
 results <- select(data.labs.coags, pie.id, inr.before.stop, inr.after.stop) %>%
     group_by(pie.id) %>%
@@ -69,8 +50,3 @@ graph2 <- ggplot(data=results, aes(x=period, y=inr, group=factor(pie.id))) +
 graph2
 
 graph2ppt(graph2, "export_test.pptx", font="Calibri", width=5, height=25/7, append=TRUE)
-
-# mydoc <- addSlide(mydoc, slide.layout = "Blank")
-# mydoc <- addPlot(mydoc, fun=print, x=graph2, offx=1, offy=1, width=5, height=25/7, 
-#                  vector.graphic=TRUE, fontname="Calibri") 
-# writeDoc(mydoc, file = "test plot.pptx")
