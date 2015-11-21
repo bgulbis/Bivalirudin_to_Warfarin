@@ -10,6 +10,8 @@ library(MESS)
 # library(lubridate)
 # library(stringr)
 
+units.diff <- "days"
+
 ## read in demographics data
 raw.demographics <- list.files("Data", pattern="^demographics", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
@@ -23,9 +25,9 @@ raw.demographics <- list.files("Data", pattern="^demographics", full.names=TRUE)
               disposition = factor(Discharge.Disposition))
 
 data.demograph <- inner_join(raw.demographics, pts.include, by="pie.id") %>%
-    mutate(bival.duration = as.numeric(difftime(bival.stop, bival.start, units="hours")),
-           bival.prior.warf = as.numeric(difftime(warf.start, bival.start, units="hours")),
-           overlap = as.numeric(difftime(bival.stop, warf.start, units="hours")))
+    mutate(bival.duration = as.numeric(difftime(bival.stop, bival.start, units=units.diff)),
+           bival.prior.warf = as.numeric(difftime(warf.start, bival.start, units=units.diff)),
+           overlap = as.numeric(difftime(bival.stop, warf.start, units=units.diff)))
 
 ## read in height and weight data
 raw.htwt <- list.files("Data", pattern="^ht_wt", full.names=TRUE) %>%
@@ -254,7 +256,7 @@ data.bival <- raw.meds %>%
               min.rate = min(rate),
               max.rate = max(rate),
               auc.rate = auc(time.hours, rate),
-              bival.duration = as.numeric(difftime(first(bival.stop), first(bival.start), units="hours"))) %>%
+              bival.duration = as.numeric(difftime(first(bival.stop), first(bival.start), units=units.diff))) %>%
     mutate(time.wt.rate = auc.rate / bival.duration)
            
 ## get baseline labs

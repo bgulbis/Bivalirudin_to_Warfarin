@@ -12,7 +12,7 @@ output:
 source("analyze.R")
 library(FSA)
 library(ggplot2)
-library(captioner)
+# library(captioner)
 library(pander)
 panderOptions('table.split.table', Inf)
 ```
@@ -159,13 +159,13 @@ graph
 ```
 
 ```{r echo=FALSE, results="hide"}
-fig.nums <- captioner()
-fig.nums("inr.start", "INR at bivalirudin initiation and first therapeutic aPTT in paired samples")
-fig.nums("inr.stop", "INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples")
-fig.nums("inr.change", "Absolute INR change at bivalirudin initiation and cesation")
+# fig.nums <- captioner()
+# fig.nums("inr.start", )
+# fig.nums("inr.stop", )
+# fig.nums("inr.change", )
 ```
 
-```{r echo=FALSE, fig.cap=fig.nums("inr.start")}
+```{r echo=FALSE, fig.cap="Figure 1. INR at bivalirudin initiation and first therapeutic aPTT in paired samples"}
 results <- select(data.labs.coags, pie.id, inr.before, inr.txptt) %>%
     group_by(pie.id) %>%
     filter(!is.na(inr.before),
@@ -180,7 +180,7 @@ graph <- ggplot(data=results, aes(x=period, y=inr, group=factor(pie.id))) +
 graph
 ```
 
-```{r echo=FALSE, fig.cap=fig.nums("inr.stop")}
+```{r echo=FALSE, fig.cap="Figure 2. INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples"}
 results <- select(data.labs.coags, pie.id, inr.before.stop, inr.after.stop) %>%
     group_by(pie.id) %>%
     filter(!is.na(inr.before.stop),
@@ -195,7 +195,7 @@ graph <- ggplot(data=results, aes(x=period, y=inr, group=factor(pie.id))) +
 graph
 ```
 
-```{r echo=FALSE, fig.cap=fig.nums("inr.change")}
+```{r echo=FALSE, fig.cap="Figure 3. Absolute INR change at bivalirudin initiation and cesation"}
 results <- select(data.labs.coags, inr.change, inr.change.stop) %>%
     rename(bival.start = inr.change,
            bival.stop = inr.change.stop) %>%
