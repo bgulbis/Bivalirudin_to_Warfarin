@@ -9,11 +9,11 @@ output:
 ---
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+source("library.R")
+source("inclusion.R")
+source("exclusion.R")
+source("tidy.R")
 source("analyze.R")
-library(FSA)
-library(ggplot2)
-# library(captioner)
-library(pander)
 panderOptions('table.split.table', Inf)
 ```
 

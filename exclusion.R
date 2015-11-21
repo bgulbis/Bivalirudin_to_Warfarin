@@ -3,13 +3,7 @@
 ## Check patients for exclusion criteria
 ##
 
-source("inclusion.R")
-library(R.utils)
-library(zoo)
-# library(tools)
-# library(dplyr)
-# library(lubridate)
-# library(stringr)
+source("library.R")
 
 ## exclusion criteria
 ## number of hours for warfarin and bivalirudin overlap

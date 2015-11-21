@@ -3,9 +3,7 @@
 ## Identify those patients meeting inclusion criteria
 ##
 
-library(dplyr)
-library(lubridate)
-library(stringr)
+source("library.R")
 
 ## join the files together, tidy the variables
 ## remove patients < 18 year old or if admit date is before 7/1/2012

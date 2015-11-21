@@ -3,13 +3,9 @@
 ## Perform data tidying
 ##
 
-source("exclusion.R")
-library(tidyr)
-library(MESS)
-# library(dplyr)
-# library(lubridate)
-# library(stringr)
+source("library.R")
 
+## set the units to use for reporting differences in time
 units.diff <- "days"
 
 ## read in demographics data
