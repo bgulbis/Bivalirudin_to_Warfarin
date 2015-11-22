@@ -12,9 +12,11 @@ library(R.utils)
 library(zoo)
 library(MESS)
 library(FSA)
-library(ggplot2)
 library(pander)
+library(ggplot2)
 library(grid)
 library(RColorBrewer)
-library(export)
+library(ReporteRs)
+
+# library(export)
 
