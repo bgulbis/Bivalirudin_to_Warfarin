@@ -238,7 +238,38 @@ tmp.proc <- raw.procedures %>%
 
 data.demograph <- left_join(data.demograph, tmp.proc, by="pie.id") %>%
     mutate(proc.48hrs = ifelse(is.na(proc.48hrs), FALSE, proc.48hrs))
+
+## function to use for checking whether a bleed or reversal was related to a procedure
+check.procedure <- function(pid, date, time.back = 0, time.forward = 0) {
     
+    ## check if there was an event that occured within the desired time frame
+    compare.dates <- function(event.date, id) {
+        x <- filter(tmp.proc, pie.id == id,
+                    proc.datetime >= event.date - days(time.back),
+                    proc.datetime <= event.date + days(time.forward))
+        if(nrow(x) >= 1) TRUE else FALSE
+    }
+    
+    lapply(seq_along(date), function(i) compare.dates(date[[i]], pid[[i]]))
+}
+
+## get the procedure descriptions
+ref.ccs.proc <- read.csv("Lookup/icd9_ccs_procedure.csv", colClasses="character") %>%
+    transmute(proc.code = ICD9.CODE.FRMT,
+              proc.desc = ICD.9.CM.CODE.DESCRIPTION,
+              proc.ccs.code = as.numeric(CCS.CATEGORY),
+              proc.ccs.desc = CCS.CATEGORY.DESCRIPTION)
+
+## find procuedres that occured during transition interval for use with 
+## check.procedures function
+tmp.proc <- raw.procedures %>%
+    inner_join(pts.include, by="pie.id") %>%
+    mutate(bival.start = floor_date(bival.start, "day"),
+           bival.stop = floor_date(bival.stop, "day")) %>%
+    filter(proc.datetime >= bival.start & proc.datetime <= bival.stop + days(5)) %>%
+    select(pie.id, proc.datetime, proc.code) %>%
+    left_join(ref.ccs.proc, by="proc.code")
+
 ## get bivalirudin infusion rates; summarize with time-weighted average
 data.bival <- raw.meds %>%
     inner_join(pts.include, by="pie.id") %>%
@@ -253,7 +284,7 @@ data.bival <- raw.meds %>%
               max.rate = max(rate),
               auc.rate = auc(time.hours, rate),
               bival.duration = as.numeric(difftime(first(bival.stop), first(bival.start), units=units.diff))) %>%
-    mutate(time.wt.rate = auc.rate / bival.duration)
+    mutate(time.wt.rate = auc.rate / (bival.duration*24))
            
 ## get baseline labs
 tmp.labs <- c("scr", "ast", "alt", "t.bili")
@@ -344,6 +375,9 @@ data.reversal <- raw.meds %>%
     inner_join(tmp.reversal, by=c("med"="name")) %>%
     filter(admin.datetime >= bival.start,
            admin.datetime <= bival.stop + days(5)) %>%
+    mutate(reverse.date = floor_date(admin.datetime, "day"),
+           procedure = check.procedure(pie.id, reverse.date, 1, 0)) %>%
+    filter(procedure == FALSE) %>%
     select(pie.id, med) %>%
     group_by(pie.id, med) %>%
     distinct %>%
@@ -355,7 +389,7 @@ data.reversal <- raw.meds %>%
     mutate(med = factor(med, levels=tmp.reversal$name)) %>%
     select(-(bival.start:warf.start)) %>%
     spread(med, value, fill=FALSE, drop=FALSE) 
-    
+
 ## blood products
 raw.blood <- list.files("Data", pattern="^blood[^_]", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
@@ -410,6 +444,9 @@ data.blood <- raw.blood %>%
     inner_join(pts.include, by="pie.id") %>%
     filter(blood.datetime >= bival.start,
            blood.datetime <= bival.stop + days(5)) %>%
+    mutate(blood.date = floor_date(blood.datetime, "day"),
+           procedure = check.procedure(pie.id, blood.date, 1, 1)) %>%
+    filter(procedure == FALSE) %>%
     select(-result, -(bival.start:warf.start)) %>%
     group_by(pie.id) %>%
     mutate(prod = assign.products(event)) %>%

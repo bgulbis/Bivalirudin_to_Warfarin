@@ -151,6 +151,9 @@ tmp.hgb <- raw.labs %>%
            bival.drop.diff = as.numeric(difftime(lab.datetime, bival.start, units="hours")),
            warf.drop.diff = as.numeric(difftime(lab.datetime, warf.start, units="hours"))) %>%
     filter(drop <= -2) %>%
+    mutate(drop.date = floor_date(lab.datetime, "day"),
+           procedure = check.procedure(pie.id, drop.date, 1, 0)) %>%
+    filter(procedure == FALSE) %>%
     summarize(hgb.drop = first(drop),
               hgb.drop.date = first(lab.datetime),
               bival.drop.diff = first(bival.drop.diff),
