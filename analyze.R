@@ -69,7 +69,10 @@ tmp.coags.12hr <- raw.labs %>%
     summarize(lab.12hr = first(as.numeric(result))) %>%
     spread(lab, lab.12hr) %>%
     rename(inr.12hr = inr,
-           ptt.12hr = ptt)
+           ptt.12hr = ptt) 
+# %>%
+#     filter(ptt.12hr >= 50,
+#            ptt.12hr <= 80)
 
 ## find the change in INR from baseline to 12 hours
 data.labs.coags <- left_join(data.labs.coags, tmp.coags.12hr, by="pie.id") %>%
@@ -91,7 +94,10 @@ tmp.coags.24hr <- raw.labs %>%
     summarize(lab.24hr = first(as.numeric(result))) %>%
     spread(lab, lab.24hr) %>%
     rename(inr.24hr = inr,
-           ptt.24hr = ptt)
+           ptt.24hr = ptt) 
+# %>%
+#     filter(ptt.24hr >= 50,
+#            ptt.24hr <= 80)
 
 ## find the change in PTT and INR from baseline to 24 hours
 data.labs.coags <- left_join(data.labs.coags, tmp.coags.24hr, by="pie.id") %>%
@@ -126,7 +132,10 @@ tmp.coags.after.stop <- raw.labs %>%
     summarize(lab.after.stop = first(as.numeric(result))) %>%
     spread(lab, lab.after.stop) %>%
     rename(inr.after.stop = inr,
-           ptt.after.stop = ptt)
+           ptt.after.stop = ptt) 
+# %>%
+#     filter(ptt.after.stop >= 50,
+#            ptt.after.stop <= 80)
 
 ## find the change in PTT and INR from before bival stop to after
 data.labs.coags <- left_join(data.labs.coags, tmp.coags.after.stop, by="pie.id") %>%

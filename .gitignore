@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+*.csv
+*.pptx
+Data
+*.pdf
+*.wmf
+IRB Documents
+*.docx
+medications.tar.gz
+explore_cache

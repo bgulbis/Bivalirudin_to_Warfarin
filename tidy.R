@@ -366,6 +366,8 @@ tmp.hit <- raw.hit %>%
 data.manual.hit <- select(data.demograph, pie.id, fin) %>%
     inner_join(tmp.hit, by="pie.id")
 
+write.csv(select(data.manual.hit, -pie.id), "SRA_Patients.csv", row.names = FALSE)
+
 ## reversal agents
 tmp.reversal <- ref.concom.meds %>%
     filter(label == "reversal")
@@ -484,3 +486,5 @@ tmp.rad <- raw.rad %>%
     
 data.manual.rad <- select(data.demograph, pie.id, fin) %>%
     inner_join(tmp.rad, by="pie.id")
+
+write.csv(select(data.manual.rad, -pie.id), "Diagnostic_Scans.csv", row.names = FALSE)
