@@ -4,6 +4,7 @@
 ## all libraries needed to perform analysis
 ##
 
+library(BGTools)
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -17,6 +18,9 @@ library(ggplot2)
 library(grid)
 library(RColorBrewer)
 library(ReporteRs)
-
 # library(export)
 
+data.dir <- "Data"
+manual.dir <- "Manual"
+
+gzip_files(data.dir)

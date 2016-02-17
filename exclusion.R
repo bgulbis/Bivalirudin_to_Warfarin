@@ -12,17 +12,6 @@ ec.overlap <- 72
 ## number of days prior to bivalirudin initiation with INR < 1.5
 ec.inr <- 1
 
-## function to check if a file is already gzipped and will zip if not
-gzip_files <- function(x) {
-    if(isGzipped(x) == FALSE) {
-        gzip(x)
-    }
-}
-
-## compress medication data files
-list.files("Data", full.names=TRUE) %>%
-    lapply(gzip_files)
-
 ## read in medication data and tidy variables
 raw.meds <- list.files("Data", pattern="^medications", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
