@@ -13,6 +13,7 @@ source("library.R")
 source("inclusion.R")
 source("exclusion.R")
 source("tidy.R")
+source("manual.R")
 source("analyze.R")
 panderOptions('table.split.table', Inf)
 ```
@@ -54,7 +55,8 @@ pander(ds1)
 ## Diagnosis
 
 ```{r echo=FALSE}
-results <- select(data.pmh, -pie.id) %>%
+results <- ungroup(data.pmh) %>% 
+    select(-pie.id) %>%
     mutate_each(funs(as.factor))
 ds1 <- lapply(as.list(results), Summarize)
 pander(ds1)
@@ -65,7 +67,8 @@ pander(ds1)
 As specified in the warfarin goals
 
 ```{r echo=FALSE}
-results <- select(data.warf, -pie.id, -indication) %>%
+results <- ungroup(data.warf) %>% 
+    select(-pie.id, -indication) %>%
     mutate_each(funs(as.factor)) 
 ds1 <- lapply(as.list(results), Summarize)
 pander(ds1)
@@ -74,7 +77,19 @@ pander(ds1)
 ### Bleeding
 
 ```{r echo=FALSE}
-results <- select(data.bleed.bival, hgb.drop, bival.drop.diff, warf.drop.diff) 
+results <- ungroup(data.bleed.bival) %>%
+    select(major.bleed, minor.bleed, hgb.drop, bival.drop.diff, warf.drop.diff) %>%
+    mutate_each(funs(as.factor))
+ds1 <- lapply(as.list(results), Summarize)
+pander(ds1)
+```
+
+## New Thrombosis
+```{r echo=FALSE}
+results <- ungroup(data.new.thrmb) %>% 
+    select(manual) %>%
+    rename(new.thromb = manual) %>%
+    mutate_each(funs(as.factor))
 ds1 <- lapply(as.list(results), Summarize)
 pander(ds1)
 ```
@@ -299,7 +314,7 @@ graph
 Correlation between INR changes and PTT changes
 
 ```{r echo=FALSE}
-results <- select(data.labs.coags, inr.change.prct, inr.change.stop.prct, ptt.change.prct, ptt.change.stop.prct) 
+results <- ungroup(data.labs.coags) %>% select(inr.change.prct, inr.change.stop.prct, ptt.change.prct, ptt.change.stop.prct, -pie.id) 
 ds1 <- cor(results, use="pairwise.complete.obs")
 pander(ds1)
 ```

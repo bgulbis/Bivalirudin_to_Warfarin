@@ -668,29 +668,80 @@ As specified in the warfarin goals
 ### Bleeding
 
 
+  * **major.bleed**:
+
+    -------------------------
+      &nbsp;     freq   perc
+    ----------- ------ ------
+     **FALSE**    30   88.24
+
+     **TRUE**     4    11.76
+
+     **Total**    34    100
+    -------------------------
+
+  * **minor.bleed**:
+
+    -------------------------
+      &nbsp;     freq   perc
+    ----------- ------ ------
+     **FALSE**    33   97.06
+
+     **TRUE**     1     2.94
+
+     **Total**    34    100
+    -------------------------
+
   * **hgb.drop**:
 
-    -----------------------------------------------------------------------
-     n   nvalid   mean   sd    min    Q1    median    Q3    max   percZero
-    --- -------- ------ ----- ----- ------ -------- ------ ----- ----------
-     2     2     -3.55  1.061 -4.3  -3.925  -3.55   -3.175 -2.8      0
-    -----------------------------------------------------------------------
+    -------------------------
+      &nbsp;     freq   perc
+    ----------- ------ ------
+     **-4.3**     1      50
+
+     **-2.8**     1      50
+
+     **Total**    2     100
+    -------------------------
 
   * **bival.drop.diff**:
 
-    --------------------------------------------------------------------
-     n   nvalid   mean   sd   min   Q1    median   Q3    max   percZero
-    --- -------- ------ ---- ----- ----- -------- ----- ----- ----------
-     2     2     72.38  19.8 58.38 65.38  72.38   79.38 86.38     0
-    --------------------------------------------------------------------
+    ------------------------------------
+            &nbsp;          freq   perc
+    ---------------------- ------ ------
+     **58.3833333333333**    1      50
+
+     **86.3833333333333**    1      50
+
+          **Total**          2     100
+    ------------------------------------
 
   * **warf.drop.diff**:
 
-    -------------------------------------------------------------------------
-     n   nvalid   mean    sd    min     Q1    median   Q3    max    percZero
-    --- -------- ------ ------ ------ ------ -------- ----- ------ ----------
-     2     2     -63.23 0.0825 -63.28 -63.25  -63.22  -63.2 -63.17     0
-    -------------------------------------------------------------------------
+    -------------------------------------
+            &nbsp;           freq   perc
+    ----------------------- ------ ------
+     **-63.2833333333333**    1      50
+
+     **-63.1666666666667**    1      50
+
+           **Total**          2     100
+    -------------------------------------
+
+
+<!-- end of list -->
+
+## New Thrombosis
+
+  * **new.thromb**:
+
+    -------------------------
+      &nbsp;     freq   perc
+    ----------- ------ ------
+     **FALSE**    34    100
+
+     **Total**    34    100
+    -------------------------
 
 
 <!-- end of list -->
@@ -699,6 +750,14 @@ As specified in the warfarin goals
 
 Most recent lab value prior to bivalirudin initiation (except for the heparin antibody ELISA, which could have been performed at any time)
 
+
+  * **pie.id**:
+
+    ----------------------------
+     Length    Class     Mode
+    -------- --------- ---------
+       34    character character
+    ----------------------------
 
   * **scr**:
 
@@ -745,9 +804,7 @@ Most recent lab value prior to bivalirudin initiation (except for the heparin an
     ----------------------------
         &nbsp;      freq   perc
     -------------- ------ ------
-     **Negative**    8    29.63
-
-     **Positive**    19   70.37
+     **Positive**    27    100
 
       **Total**      27    100
     ----------------------------
@@ -1243,14 +1300,20 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
 ## Medications During Hospitalization
 
 
+  * **pie.id**:
+
+    ----------------------------
+     Length    Class     Mode
+    -------- --------- ---------
+       34    character character
+    ----------------------------
+
   * **amiodarone**:
 
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    16   47.06
-
-     **TRUE**     18   52.94
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1260,9 +1323,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    26   76.47
-
-     **TRUE**     8    23.53
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1272,9 +1333,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    6    17.65
-
-     **TRUE**     28   82.35
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1284,9 +1343,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    22   64.71
-
-     **TRUE**     12   35.29
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1316,9 +1373,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    30   88.24
-
-     **TRUE**     4    11.76
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1338,9 +1393,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    32   94.12
-
-     **TRUE**     2     5.88
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1350,9 +1403,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    24   70.59
-
-     **TRUE**     10   29.41
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1362,9 +1413,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    8    23.53
-
-     **TRUE**     26   76.47
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1374,9 +1423,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    28   82.35
-
-     **TRUE**     6    17.65
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1386,9 +1433,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    26   76.47
-
-     **TRUE**     8    23.53
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1398,9 +1443,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    30   88.24
-
-     **TRUE**     4    11.76
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1410,9 +1453,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    33   97.06
-
-     **TRUE**     1     2.94
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1432,9 +1473,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    27   79.41
-
-     **TRUE**     7    20.59
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1444,9 +1483,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    33   97.06
-
-     **TRUE**     1     2.94
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1466,9 +1503,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    31   91.18
-
-     **TRUE**     3     8.82
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1478,9 +1513,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    28   82.35
-
-     **TRUE**     6    17.65
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1490,9 +1523,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    28   82.35
-
-     **TRUE**     6    17.65
+     **TRUE**     34    100
 
      **Total**    34    100
     -------------------------
@@ -1513,14 +1544,20 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
 ## Blood Products
 
 
+  * **pie.id**:
+
+    ----------------------------
+     Length    Class     Mode
+    -------- --------- ---------
+       34    character character
+    ----------------------------
+
   * **prbc**:
 
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    28   82.35
-
-     **TRUE**     6    17.65
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1530,9 +1567,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    33   97.06
-
-     **TRUE**     1     2.94
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1542,9 +1577,7 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
     -------------------------
       &nbsp;     freq   perc
     ----------- ------ ------
-     **FALSE**    33   97.06
-
-     **TRUE**     1     2.94
+     **FALSE**    34    100
 
      **Total**    34    100
     -------------------------
@@ -1642,6 +1675,14 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
 
 ## Primary and Secondary Endpoints
 
+
+  * **pie.id**:
+
+    ----------------------------
+     Length    Class     Mode
+    -------- --------- ---------
+       34    character character
+    ----------------------------
 
   * **inr.before**:
 
@@ -1883,34 +1924,61 @@ Summary of labs from 48 hours prior to bivalirudin initiation to 5 days after bi
 ## Warning: Removed 20 rows containing non-finite values (stat_density).
 ```
 
-![](explore_files/figure-html/unnamed-chunk-13-1.png) 
+![](explore_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 
 ```
 ## Warning: Removed 19 rows containing non-finite values (stat_density).
 ```
 
-![](explore_files/figure-html/unnamed-chunk-14-1.png) 
+![](explore_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 
 
-![Figure 1. INR at bivalirudin initiation and first therapeutic aPTT in paired samples](explore_files/figure-html/unnamed-chunk-16-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-17-1.png" alt="Figure 1. INR at bivalirudin initiation and first therapeutic aPTT in paired samples"  />
+<p class="caption">Figure 1. INR at bivalirudin initiation and first therapeutic aPTT in paired samples</p>
+</div>
 
-![Figure 2. INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples](explore_files/figure-html/unnamed-chunk-17-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-18-1.png" alt="Figure 2. INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples"  />
+<p class="caption">Figure 2. INR just prior to bivalirudin cesation and between 4 and 8 hours after cessation in paired samples</p>
+</div>
 
-![Figure 3. Absolute INR change at bivalirudin initiation and cesation](explore_files/figure-html/unnamed-chunk-18-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-19-1.png" alt="Figure 3. Absolute INR change at bivalirudin initiation and cesation"  />
+<p class="caption">Figure 3. Absolute INR change at bivalirudin initiation and cesation</p>
+</div>
 
-![INR change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-19-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-20-1.png" alt="INR change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">INR change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
-![INR percent change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-20-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-21-1.png" alt="INR percent change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">INR percent change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
-![Comparison of the amount of INR change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-21-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison of the amount of INR change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">Comparison of the amount of INR change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
-![PTT change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-22-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-23-1.png" alt="PTT change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">PTT change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
-![PTT percent change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-23-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-24-1.png" alt="PTT percent change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">PTT percent change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
-![Comparison of the amount of PTT change at bivalirudin initiation and cesation in paired samples](explore_files/figure-html/unnamed-chunk-24-1.png) 
+<div class="figure">
+<img src="explore_files/figure-html/unnamed-chunk-25-1.png" alt="Comparison of the amount of PTT change at bivalirudin initiation and cesation in paired samples"  />
+<p class="caption">Comparison of the amount of PTT change at bivalirudin initiation and cesation in paired samples</p>
+</div>
 
 Correlation between INR changes and PTT changes
 

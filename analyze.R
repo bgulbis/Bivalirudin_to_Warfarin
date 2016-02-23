@@ -170,8 +170,11 @@ tmp.hgb <- raw.labs %>%
 
 data.bleed.bival <- data.pmh %>%
     select(pie.id, contains("bleed")) %>%
-    inner_join(tmp.hgb, by="pie.id") %>%
-    inner_join(data.blood, by="pie.id")
+    full_join(tmp.hgb, by="pie.id") %>%
+    full_join(data.blood, by="pie.id") %>%
+    mutate(major.bleed = ifelse(bleed.major == TRUE | bleed.minor == TRUE & 
+                                    !is.na(hgb.drop), TRUE, FALSE),
+           minor.bleed = ifelse(major.bleed == FALSE & bleed.minor == TRUE, TRUE, FALSE))
 
 ## warfarin indications
 data.warf <- tmp.warf.indict %>%
@@ -180,3 +183,14 @@ data.warf <- tmp.warf.indict %>%
            pe = str_detect(indication, "Pulmonary embolism"),
            valve = str_detect(indication, "Heart valve"),
            other = str_detect(indication, "Other"))
+
+# new thrombosis ----
+# look for positive scan while on bivalirudin
+data.new.thrmb <- man.rad %>%
+    inner_join(pts.include, by = "pie.id") %>%
+    filter(rad.datetime >= bival.start,
+           rad.datetime <= bival.stop + days(5)) %>%
+    group_by(pie.id) %>%
+    summarize(manual = ifelse(sum(manual, na.rm = TRUE) >= 1, TRUE, FALSE)) %>%
+    full_join(select(pts.include, pie.id), by = "pie.id") %>%
+    mutate(manual = ifelse(is.na(manual), FALSE, manual))
