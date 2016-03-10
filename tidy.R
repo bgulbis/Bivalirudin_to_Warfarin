@@ -319,7 +319,7 @@ data.labs.baseline <- left_join(data.labs.baseline, tmp.crcl, by="pie.id")
 ## 48 hours prior to bival to 5 days after bival stop
 tmp.labs <- c("hct", "hgb", "inr", "platelet", "ptt")
 
-data.labs.serial <- raw.labs %>%
+tmp.labs.serial <- raw.labs %>%
     inner_join(pts.include, by="pie.id") %>%
     filter(lab.datetime >= bival.start - days(2),
            lab.datetime <= bival.stop + days(5),
@@ -328,7 +328,9 @@ data.labs.serial <- raw.labs %>%
            result = as.numeric(result)) %>%
     group_by(pie.id, lab) %>%
     arrange(lab.datetime) %>%
-    mutate(time.diff = as.numeric(difftime(lab.datetime, first(lab.datetime), units="hours"))) %>%
+    mutate(time.diff = as.numeric(difftime(lab.datetime, first(lab.datetime), units="hours")))
+
+data.labs.serial <- tmp.labs.serial %>%
     summarize(first = first(result),
               last = last(result),
               change = last(result) - first(result),
