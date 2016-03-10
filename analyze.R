@@ -197,14 +197,17 @@ data.new.thrmb <- man.rad %>%
 
 # determine percent time anticoagulated
 tmp.labs.serial.perc <- tmp.labs.serial %>%
-    filter(lab.datetime >= bival.start,
-           lab.datetime <= bival.stop + hours(12)) %>%
+    filter() %>%
     rename(run.time = time.diff) %>%
     mutate(duration = as.numeric(difftime(lead(lab.datetime), lab.datetime, units = "hours")),
            duration = ifelse(is.na(duration), 1, duration))
 
-tmp.labs.ptt <- filter(tmp.labs.serial.perc, lab == "ptt")
-tmp.labs.inr <- filter(tmp.labs.serial.perc, lab == "inr")
+tmp.labs.ptt <- filter(tmp.labs.serial.perc, lab == "ptt", 
+                       lab.datetime >= bival.start,
+                       lab.datetime <= bival.stop + hours(12))
+tmp.labs.inr <- filter(tmp.labs.serial.perc, lab == "inr",
+                       lab.datetime >= bival.stop,
+                       lab.datetime <= bival.stop + days(5))
 
 tmp.labs.perc.ptt <- calc_perc_time(tmp.labs.ptt, list(~result >= 50, ~result <= 80), meds = FALSE)
 tmp.labs.perc.inr <- calc_perc_time(tmp.labs.inr, list(~result >= 2, ~result <= 3), meds = FALSE)
