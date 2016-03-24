@@ -209,5 +209,33 @@ tmp.labs.inr <- filter(tmp.labs.serial.perc, lab == "inr",
                        lab.datetime >= bival.stop,
                        lab.datetime <= bival.stop + days(5))
 
-tmp.labs.perc.ptt <- calc_perc_time(tmp.labs.ptt, list(~result >= 50, ~result <= 80), meds = FALSE)
-tmp.labs.perc.inr <- calc_perc_time(tmp.labs.inr, list(~result >= 2, ~result <= 3), meds = FALSE)
+tmp.ptt.goal <- calc_perc_time(tmp.labs.ptt, list(~result >= 50, ~result <= 80), meds = FALSE) %>%
+    select(pie.id, perc.time.goal = perc.time)
+tmp.ptt.low <- calc_perc_time(tmp.labs.ptt, list(~result < 50), meds = FALSE) %>%
+    select(pie.id, perc.time.low = perc.time)
+tmp.ptt.high <- calc_perc_time(tmp.labs.ptt, list(~result > 80), meds = FALSE) %>%
+    select(pie.id, perc.time.high = perc.time)
+
+data.labs.ptt.perc <- inner_join(tmp.ptt.goal, tmp.ptt.low, by = "pie.id") %>%
+    inner_join(tmp.ptt.high, by = "pie.id")
+
+# tmp.labs.perc.inr <- calc_perc_time(tmp.labs.inr, list(~result >= 2, ~result <= 3), meds = FALSE)
+
+# restart bival within 24 hours after bival.stop?
+
+# make analysis tables
+analyze.demographics <- select(data.demograph, pie.id, age:disposition, bival.duration:weight, proc.48hrs)
+analyze.diagnosis <- data.pmh
+analyze.indications <- select(data.warf, -indication) %>%
+    mutate(vte = ifelse(dvt == TRUE | pe == TRUE, TRUE, FALSE),
+           multiple = ifelse(sum(afib, dvt, pe, valve) > 1, TRUE, FALSE))
+analyze.bleed <- select(data.bleed.bival, pie.id, major.bleed, minor.bleed, hgb.drop, bival.drop.diff, warf.drop.diff) %>%
+    left_join(data.new.thrmb, by = "pie.id") %>%
+    rename(new.thrombosis = manual)
+analyze.labs <- data.labs.baseline
+analyze.ptt.perc <- data.labs.ptt.perc
+analyze.bival <- data.bival
+analyze.meds <- data.meds
+analyze.blood <- data.blood
+analyze.reversal <- data.reversal
+analyze.coags <- data.labs.coags
