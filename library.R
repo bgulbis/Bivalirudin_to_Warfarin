@@ -22,5 +22,6 @@ library(ReporteRs)
 
 data.dir <- "Data"
 manual.dir <- "Manual"
+analysis.dir <- "Analysis"
 
 gzip_files(data.dir)
