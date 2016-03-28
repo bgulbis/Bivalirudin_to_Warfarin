@@ -56,6 +56,49 @@ data.labs.coags <- left_join(tmp.coags.first, tmp.inr, by="pie.id") %>%
            ptt.change = ptt.tx - ptt.before,
            ptt.change.prct = ptt.tx / ptt.before)
 
+## find the PTT and INR after at least 4 hours on bivalirudin, prior to warfarin starting
+tmp.coags.4hr <- raw.labs %>%
+    inner_join(pts.include, by="pie.id") %>%
+    filter(lab == "inr" | lab == "ptt",
+           lab.datetime >= bival.start + hours(4),
+           lab.datetime < warf.start) %>%
+    group_by(pie.id, lab) %>%
+    mutate(lab.diff = as.numeric(abs(difftime(lab.datetime, bival.start, units="hours")))) %>%
+    arrange(lab.diff) %>%
+    summarize(lab.4hr = first(as.numeric(result))) %>%
+    spread(lab, lab.4hr) %>%
+    rename(inr.4hr = inr,
+           ptt.4hr = ptt) 
+
+## find the change in INR from baseline to after 4+ hours on bivalirudin
+data.labs.coags <- left_join(data.labs.coags, tmp.coags.4hr, by="pie.id") %>%
+    mutate(inr.change.4hr = inr.4hr - inr.before,
+           inr.change.4hr.prct = inr.4hr / inr.before,
+           ptt.change.4hr = ptt.4hr - ptt.before,
+           ptt.change.4hr.prct = ptt.4hr / ptt.before)
+
+## find the PTT and INR after 6 hours on bivalirudin, prior to warfarin starting
+tmp.coags.6hr <- raw.labs %>%
+    inner_join(pts.include, by="pie.id") %>%
+    filter(lab == "inr" | lab == "ptt",
+           lab.datetime >= bival.start + hours(4),
+           lab.datetime <= bival.start + hours(8),
+           lab.datetime < warf.start) %>%
+    group_by(pie.id, lab) %>%
+    mutate(lab.diff = as.numeric(abs(difftime(lab.datetime, bival.start + hours(6), units="hours")))) %>%
+    arrange(lab.diff) %>%
+    summarize(lab.6hr = first(as.numeric(result))) %>%
+    spread(lab, lab.6hr) %>%
+    rename(inr.6hr = inr,
+           ptt.6hr = ptt) 
+
+## find the change in INR from baseline to 6 hours
+data.labs.coags <- left_join(data.labs.coags, tmp.coags.6hr, by="pie.id") %>%
+    mutate(inr.change.6hr = inr.6hr - inr.before,
+           inr.change.6hr.prct = inr.6hr / inr.before,
+           ptt.change.6hr = ptt.6hr - ptt.before,
+           ptt.change.6hr.prct = ptt.6hr / ptt.before)
+
 ## find the PTT and INR after 12 hours on bivalirudin, prior to warfarin starting
 tmp.coags.12hr <- raw.labs %>%
     inner_join(pts.include, by="pie.id") %>%
@@ -260,3 +303,16 @@ saveRDS(analyze.reversal, paste(analysis.dir, "reversal.Rds", sep = "/"))
 
 analyze.coags <- data.labs.coags
 saveRDS(analyze.coags, paste(analysis.dir, "coags.Rds", sep = "/"))
+
+# explore
+
+qqnorm(analyze.demographics$age)
+qqnorm(analyze.demographics$bival.duration)
+qqnorm(analyze.demographics$bival.prior.warf)
+qqnorm(analyze.demographics$overlap)
+qqnorm(analyze.bival$time.wt.rate)
+qqline(analyze.bival$time.wt.rate)
+# hist(analyze.bival$time.wt.rate)
+ggplot(data = analyze.bival, aes(x = time.wt.rate)) +
+    geom_histogram(binwidth = 0.025)
+

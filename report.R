@@ -44,8 +44,102 @@ mydoc <- result_table(mydoc, analyze.blood, "Blood Products", group = NULL)
 mydoc <- result_table(mydoc, analyze.reversal, "Reversal Agents", group = NULL)
 mydoc <- result_table(mydoc, analyze.coags, "Primary and Secondary Endpoints", group = NULL)
 
-# add result table for each continuous agent
-# mydoc <- result_table2(mydoc, analyze.sedatives, "med", "Continuous Medications")
+# create graphs
+results <- select(analyze.coags, pie.id, inr.before, inr.txptt) %>%
+    rename(inr1 = inr.before,
+           inr2 = inr.txptt) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+cols <- colorRampPalette(brewer.pal(8, "Set1"))
+num.cols <- nrow(select(results, pie.id) %>% distinct)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value at Baseline and\nTime of First Therapeutic aPTT") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Baseline", "First Therapeutic\naPTT"), expand = c(0.25, 0.25)) +
+    scale_color_manual(values = cols(num.cols)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+mydoc <- result_plot(mydoc, graph, "Figure 1. Change in INR from Baseline to Time of First Therapeutic aPTT")
+
+results <- select(analyze.coags, pie.id, inr.before.stop, inr.after.stop) %>%
+    rename(inr1 = inr.before.stop,
+           inr2 = inr.after.stop) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group=factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value Prior to and\n4 to 8 hours After Bivalirudin Cessation") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Prior to\nCessation", "After Cessation"), expand = c(0.25, 0.25)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+mydoc <- result_plot(mydoc, graph, "Figure 2. Change in INR from Last on Baseline to Between 4 and 8 hours after Bivalirudin Cessation")
+
+results <- select(analyze.coags, pie.id, inr.before, inr.6hr) %>%
+    rename(inr1 = inr.before,
+           inr2 = inr.6hr) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+cols <- colorRampPalette(brewer.pal(8, "Set1"))
+num.cols <- nrow(select(results, pie.id) %>% distinct)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value at Baseline and\n6-hours after Bivalirudin Initiation") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Baseline", "6 Hours"), expand = c(0.25, 0.25)) +
+    scale_color_manual(values = cols(num.cols)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+mydoc <- result_plot(mydoc, graph, "Figure 3. Change in INR from Baseline to 6-hours after Bivalirudin Initiation")
+
+results <- select(analyze.coags, pie.id, inr.before, inr.4hr) %>%
+    rename(inr1 = inr.before,
+           inr2 = inr.4hr) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+cols <- colorRampPalette(brewer.pal(8, "Set1"))
+num.cols <- nrow(select(results, pie.id) %>% distinct)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value at Baseline and\nafter 4 hours on Bivalirudin") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Baseline", "4 Hours"), expand = c(0.25, 0.25)) +
+    scale_color_manual(values = cols(num.cols)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+mydoc <- result_plot(mydoc, graph, "Figure 4. Change in INR from Baseline to after at least 4 hours on Bivalirudin")
 
 # add citation and write docx to Word
 write_docx(mydoc, file = "Analysis/results.docx")

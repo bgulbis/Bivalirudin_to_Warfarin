@@ -5,6 +5,7 @@
 ##
 
 source("library.R")
+library(ReporteRs)
 
 ## unused options
 # mydoc <- pptx(template="graph_template.pptx")
