@@ -267,45 +267,30 @@ data.labs.ptt.perc <- inner_join(tmp.ptt.goal, tmp.ptt.low, by = "pie.id") %>%
 # restart bival within 24 hours after bival.stop?
 
 # make analysis tables
+
 analyze.demographics <- select(data.demograph, pie.id, age:disposition, bival.duration:weight, proc.48hrs)
-saveRDS(analyze.demographics, paste(analysis.dir, "demographics.Rds", sep = "/"))
 
 analyze.diagnosis <- data.pmh
-saveRDS(analyze.diagnosis, paste(analysis.dir, "diagnosis.Rds", sep = "/"))
 
 analyze.indications <- select(data.warf, -indication) %>%
     mutate(vte = ifelse(dvt == TRUE | pe == TRUE, TRUE, FALSE),
            multiple = ifelse(sum(afib, dvt, pe, valve) > 1, TRUE, FALSE))
-saveRDS(analyze.indications, paste(analysis.dir, "indications.Rds", sep = "/"))
 
 analyze.bleed <- select(data.bleed.bival, pie.id, major.bleed, minor.bleed, hgb.drop, bival.drop.diff, warf.drop.diff) %>%
     left_join(data.new.thrmb, by = "pie.id") %>%
-    rename(new.thrombosis = manual)
-saveRDS(analyze.bleed, paste(analysis.dir, "bleed.Rds", sep = "/"))
+    rename(new.thrombosis = manual) %>%
+    ungroup
 
-analyze.labs <- data.labs.baseline
-saveRDS(analyze.labs, paste(analysis.dir, "labs.Rds", sep = "/"))
-
-analyze.ptt.perc <- data.labs.ptt.perc
-saveRDS(analyze.ptt.perc, paste(analysis.dir, "ptt_percents.Rds", sep = "/"))
-
+analyze.labs <- data.labs.baseline %>% ungroup
+analyze.ptt.perc <- data.labs.ptt.perc %>% ungroup
 analyze.bival <- data.bival
-saveRDS(analyze.bival, paste(analysis.dir, "bivalirudin.Rds", sep = "/"))
-
-analyze.meds <- data.meds
-saveRDS(analyze.meds, paste(analysis.dir, "meds.Rds", sep = "/"))
-
-analyze.blood <- data.blood
-saveRDS(analyze.blood, paste(analysis.dir, "blood.Rds", sep = "/"))
-
+analyze.meds <- data.meds %>% ungroup
+analyze.prbc <- data.blood %>% ungroup
 analyze.reversal <- data.reversal
-saveRDS(analyze.reversal, paste(analysis.dir, "reversal.Rds", sep = "/"))
+analyze.coags <- data.labs.coags %>% ungroup
+analyze.labs.serial <- tmp.labs.serial %>% ungroup
 
-analyze.coags <- data.labs.coags
-saveRDS(analyze.coags, paste(analysis.dir, "coags.Rds", sep = "/"))
-
-analyze.labs.serial <- tmp.labs.serial
-saveRDS(analyze.labs.serial, paste(analysis.dir, "labs_serial.Rds", sep = "/"))
+save_rds(analysis.dir, "analyze")
 
 # explore
 
