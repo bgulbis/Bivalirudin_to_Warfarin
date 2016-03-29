@@ -304,6 +304,9 @@ saveRDS(analyze.reversal, paste(analysis.dir, "reversal.Rds", sep = "/"))
 analyze.coags <- data.labs.coags
 saveRDS(analyze.coags, paste(analysis.dir, "coags.Rds", sep = "/"))
 
+analyze.labs.serial <- tmp.labs.serial
+saveRDS(analyze.labs.serial, paste(analysis.dir, "labs_serial.Rds", sep = "/"))
+
 # explore
 
 qqnorm(analyze.demographics$age)
@@ -315,4 +318,3 @@ qqline(analyze.bival$time.wt.rate)
 # hist(analyze.bival$time.wt.rate)
 ggplot(data = analyze.bival, aes(x = time.wt.rate)) +
     geom_histogram(binwidth = 0.025)
-

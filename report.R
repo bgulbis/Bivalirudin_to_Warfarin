@@ -24,6 +24,8 @@ if (!exists("analyze.reversal")) analyze.reversal <- readRDS(analyze.reversal, p
 
 if (!exists("analyze.coags")) analyze.coags <- readRDS(analyze.coags, paste(analysis.dir, "coags.Rds", sep = "/"))
 
+if (!exists("analyze.labs.serial")) analyze.labs.serial <- readRDS(analyze.labs.serial, paste(analysis.dir, "labs_serial.Rds", sep = "/"))
+
 
 # create docx object with project title and authors
 project <- "Evaluation of Bivalirudin's Effect on the INR"
@@ -141,5 +143,35 @@ graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))
 
 mydoc <- result_plot(mydoc, graph, "Figure 4. Change in INR from Baseline to after at least 4 hours on Bivalirudin")
 
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime <= bival.start + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_point() +
+    geom_line() +
+    geom_smooth(color = "black") +
+    theme(legend.position = "none")
+
+mydoc <- result_plot(mydoc, graph, "Figure 5. Change in INR values before and after bivalirudin initiation")
+
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= bival.stop - hours(48),
+           lab.datetime <= bival.stop + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours"))) %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_point() +
+    geom_line() +
+    geom_smooth(color = "black") +
+    theme(legend.position = "none")
+
+mydoc <- result_plot(mydoc, graph, "Figure 6. Change in INR values before and after bivalirudin cessation")
+
 # add citation and write docx to Word
-write_docx(mydoc, file = "Analysis/results.docx")
+write_docx(mydoc, file = paste(analysis.dir, "results.docx", sep = "/"))
