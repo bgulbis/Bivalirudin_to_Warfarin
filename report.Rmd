@@ -1,0 +1,177 @@
+---
+title: "Evaluation of Bivalirudin's Effect on the INR"
+author: "Andrea Fetea, Brian Gulbis, Andrea C. Hall"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document: 
+    toc: yes
+    toc_float: true
+    code_folding: hide
+---
+
+## Results
+```{r message=FALSE}
+source("library.R")
+library(pander)
+panderOptions("table.split.table", Inf)
+get_rds(analysis.dir)
+```
+
+### Demographics
+```{r}
+x <- result_table("table", analyze.demographics, group = NULL)
+pander(x)
+```
+
+### Past Medical History
+```{r}
+x <- result_table("table", analyze.diagnosis, group = NULL)
+pander(x)
+```
+
+### Anticoagulation Indications
+```{r}
+x <- result_table("table", analyze.indications, group = NULL)
+pander(x)
+```
+
+### Bleeding and Thrombosis
+```{r}
+x <- result_table("table", analyze.bleed, group = NULL)
+pander(x)
+```
+
+### Baseline Labs
+```{r}
+x <- result_table("table", analyze.labs, group = NULL)
+pander(x)
+```
+
+### Percent PTT Values
+```{r}
+x <- result_table("table", analyze.ptt.perc, group = NULL)
+pander(x)
+```
+
+### Bivalirudin Infusion
+```{r}
+x <- result_table("table", analyze.bival, group = NULL)
+pander(x)
+```
+
+### Medications During Hospitalization
+```{r}
+x <- result_table("table", analyze.meds, group = NULL)
+pander(x)
+```
+
+### Blood Products
+```{r}
+x <- result_table("table", analyze.prbc, group = NULL)
+pander(x)
+```
+
+### Reversal Agents
+```{r}
+x <- result_table("table", analyze.reversal, group = NULL)
+pander(x)
+```
+
+### Primary and Secondary Endpoints
+```{r}
+x <- result_table("table", analyze.coags, group = NULL)
+pander(x)
+```
+
+## Figures
+
+```{r fig1, fig.cap="Figure 1"}
+results <- select(analyze.coags, pie.id, inr.before, inr.txptt) %>%
+    rename(inr1 = inr.before,
+           inr2 = inr.txptt) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+cols <- colorRampPalette(brewer.pal(8, "Set1"))
+num.cols <- nrow(select(results, pie.id) %>% distinct)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value at Baseline and\nTime of First Therapeutic aPTT") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Baseline", "First Therapeutic\naPTT"), expand = c(0.25, 0.25)) +
+    scale_color_manual(values = cols(num.cols)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+print(graph)
+```
+
+```{r fig2, fig.cap="Figure 2"}
+results <- select(analyze.coags, pie.id, inr.before.stop, inr.after.stop) %>%
+    rename(inr1 = inr.before.stop,
+           inr2 = inr.after.stop) %>%
+    group_by(pie.id) %>%
+    filter(!is.na(inr1),
+           !is.na(inr2)) %>%
+    gather(period, inr, inr1, inr2)
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group=factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    ggtitle("INR Value Prior to and\n4 to 8 hours After Bivalirudin Cessation") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Prior to\nCessation", "After Cessation"), expand = c(0.25, 0.25)) +
+    theme_bw() +
+    theme(legend.position = "none", plot.title = element_text(size = 20), 
+          axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+print(graph)
+```
+
+```{r fig3, fig.cap="Figure 3"}
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime <= bival.start + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_point() +
+    geom_line() +
+    geom_smooth(color = "black") +
+    ggtitle("Change in INR values before and after bivalirudin initiation") +
+    xlab("Time from bivalirudin initiation (hours)") +
+    ylab("INR") +
+    theme(legend.position = "none")
+
+print(graph)
+```
+
+```{r fig4, fig.cap="Figure 4"}
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= bival.stop - hours(48),
+           lab.datetime <= bival.stop + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours"))) %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_point() +
+    geom_line() +
+    geom_smooth(color = "black") +
+    ggtitle("Change in INR values before and after bivalirudin cessation") +
+    xlab("Time from bivalirudin cessation (hours)") +
+    ylab("INR") +
+    theme(legend.position = "none")
+
+print(graph)
+```
+
