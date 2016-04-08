@@ -19,6 +19,8 @@ library(dplyr)
 library(tidyr)
 library(lubridate)
 library(ggplot2)
+library(grid)
+library(gtable)
 library(RColorBrewer)
 library(pander)
 library(captioner)
@@ -200,6 +202,8 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
+Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin initation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before initiation and after initiation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded, so the INR increase during the first 24 hours of bivalirudin infusion should be the result of bivalirudin.
+
 ```{r echo=FALSE}
 cap <- "inr_chg_bival_stop"
 fig_cap <- fig_nums(cap)
@@ -228,5 +232,43 @@ graph <- analyze.labs.serial %>%
     theme(legend.position = "none")
 
 print(graph)
+```
+
+Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin cessation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before cessation and after cessation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded.
+
+```{r echo=FALSE, eval=FALSE}
+source("dual_plot.R")
+
+graph.data <- analyze.labs.serial %>%
+    filter(lab == "inr" | lab == "ptt",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= bival.stop - hours(48),
+           lab.datetime <= bival.stop + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")))
+
+graph.inr <- filter(graph.data, lab == "inr") %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(alpha = 0.4) +
+    geom_line(alpha = 0.4) +
+    geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
+    geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
+    ggtitle(fig_cap) +
+    xlab("Time from bivalirudin cessation (hours)") +
+    ylab("INR") +
+    # ylim(c(1.5, 3.5)) +
+    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
+    theme(legend.position = "none")
+
+graph.ptt <- filter(graph.data, lab == "ptt") %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_smooth(aes(group = NULL), color = "red", se = FALSE) +
+    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
+    ylab("aPTT") +
+    theme(legend.position = "none", plot.background = element_rect(fill = "transparent"))
+
+ggplot_dual_axis(graph.inr, graph.ptt, "y")
+
 ```
 
