@@ -294,12 +294,12 @@ save_rds(analysis.dir, "analyze")
 
 # explore
 
-qqnorm(analyze.demographics$age)
-qqnorm(analyze.demographics$bival.duration)
-qqnorm(analyze.demographics$bival.prior.warf)
-qqnorm(analyze.demographics$overlap)
-qqnorm(analyze.bival$time.wt.rate)
-qqline(analyze.bival$time.wt.rate)
-# hist(analyze.bival$time.wt.rate)
-ggplot(data = analyze.bival, aes(x = time.wt.rate)) +
-    geom_histogram(binwidth = 0.025)
+# qqnorm(analyze.demographics$age)
+# qqnorm(analyze.demographics$bival.duration)
+# qqnorm(analyze.demographics$bival.prior.warf)
+# qqnorm(analyze.demographics$overlap)
+# qqnorm(analyze.bival$time.wt.rate)
+# qqline(analyze.bival$time.wt.rate)
+# # hist(analyze.bival$time.wt.rate)
+# ggplot(data = analyze.bival, aes(x = time.wt.rate)) +
+#     geom_histogram(binwidth = 0.025)
