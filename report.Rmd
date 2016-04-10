@@ -254,12 +254,13 @@ graph.data <- analyze.labs.serial %>%
            last(lab.datetime) > bival.start,
            lab.datetime <= bival.start + days(3),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) 
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE)) 
 
 graph.inr1 <- filter(graph.data, lab == "inr") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = graph.alpha) +
+    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
     # geom_line(alpha = graph.alpha) +
     # geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     geom_smooth(aes(group = NULL), color = "black") +
@@ -273,7 +274,7 @@ graph.inr1 <- filter(graph.data, lab == "inr") %>%
 graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = graph.alpha) +
+    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
     # geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "black") +
     ggtitle("C. aPTT and bivalirudin initiation") +
@@ -289,12 +290,13 @@ graph.data <- analyze.labs.serial %>%
            lab.datetime >= bival.stop - hours(48),
            lab.datetime <= bival.stop + days(3),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")))
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE))
 
 graph.inr2 <- filter(graph.data, lab == "inr") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = graph.alpha) +
+    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
     # geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "black") +
     ggtitle("B. INR and bivalirudin cessation") +
@@ -307,7 +309,7 @@ graph.inr2 <- filter(graph.data, lab == "inr") %>%
 graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = graph.alpha) +
+    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
     # geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "black") +
     ggtitle("D. aPTT and bivalirudin cessation") +
