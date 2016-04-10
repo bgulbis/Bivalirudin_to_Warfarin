@@ -20,7 +20,7 @@ library(tidyr)
 library(lubridate)
 library(ggplot2)
 library(grid)
-library(gtable)
+library(gridExtra)
 library(RColorBrewer)
 library(pander)
 library(captioner)
@@ -104,8 +104,9 @@ pander(x)
 ```{r fig_caps, echo=FALSE}
 fig_nums(name = "inr_tx_ptt", caption = "INR Value at Baseline and Time of First Therapeutic aPTT", display = FALSE)
 fig_nums(name = "inr_bival_stop", caption = "INR Value Prior to and 4 to 8 hours After Bivalirudin Cessation", display = FALSE)
-fig_nums(name = "inr_chg_bival_start", caption = "Change in INR values before and after bivalirudin initiation", display = FALSE)
-fig_nums(name = "inr_chg_bival_stop", caption = "Change in INR values before and after bivalirudin cessation", display = FALSE)
+fig_nums(name = "inr_chg_bival_start", caption = "Change in INR values at bivalirudin initiation", display = FALSE)
+fig_nums(name = "inr_chg_bival_stop", caption = "Change in INR values at bivalirudin cessation", display = FALSE)
+fig_nums(name = "dual_bival", caption = "Change in INR and aPTT values at bivalirudin initiation and cessation", display = FALSE)
 ```
 
 ```{r echo=FALSE}
@@ -175,6 +176,9 @@ print(graph)
 ```{r echo=FALSE}
 cap <- "inr_chg_bival_start"
 fig_cap <- fig_nums(cap)
+ylim.inr <- c(1, 3.5)
+x.breaks <- c(-48, -24, 0, 24, 48, 72)
+graph.alpha <- 0.3
 ```
 
 ### `r fig_nums(cap, display = "cite")`
@@ -188,15 +192,15 @@ graph <- analyze.labs.serial %>%
     mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = 0.4) +
-    geom_line(alpha = 0.4) +
+    geom_point(alpha = graph.alpha) +
+    geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     ggtitle(fig_cap) +
     xlab("Time from bivalirudin initiation (hours)") +
     ylab("INR") +
-    ylim(c(1, 2.5)) +
-    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.inr) +
     theme(legend.position = "none")
 
 print(graph)
@@ -220,15 +224,15 @@ graph <- analyze.labs.serial %>%
     mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours"))) %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = 0.4) +
-    geom_line(alpha = 0.4) +
+    geom_point(alpha = graph.alpha) +
+    geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     ggtitle(fig_cap) +
     xlab("Time from bivalirudin cessation (hours)") +
     ylab("INR") +
-    ylim(c(1.5, 3.5)) +
-    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.inr) +
     theme(legend.position = "none")
 
 print(graph)
@@ -236,8 +240,48 @@ print(graph)
 
 Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin cessation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before cessation and after cessation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded.
 
-```{r echo=FALSE, eval=FALSE}
-source("dual_plot.R")
+```{r echo=FALSE}
+cap <- "dual_bival"
+fig_cap <- fig_nums(cap)
+ylim.ptt <- c(45, 85)
+```
+
+### `r fig_nums(cap, display = "cite")`
+```{r dual_bival}
+graph.data <- analyze.labs.serial %>%
+    filter(lab == "inr" | lab == "ptt",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime <= bival.start + days(3),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) 
+
+graph.inr1 <- filter(graph.data, lab == "inr") %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(alpha = graph.alpha) +
+    # geom_line(alpha = graph.alpha) +
+    # geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
+    geom_smooth(aes(group = NULL), color = "black") +
+    ggtitle("A. INR and bivalirudin initiation") +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.inr) +
+    theme(legend.position = "none")
+
+graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
+    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(alpha = graph.alpha) +
+    # geom_line(alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "black") +
+    ggtitle("C. aPTT and bivalirudin initiation") +
+    xlab("Time from bivalirudin initiation (hours)") +
+    ylab("aPTT (seconds)") +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.ptt) +
+    theme(legend.position = "none")
 
 graph.data <- analyze.labs.serial %>%
     filter(lab == "inr" | lab == "ptt",
@@ -247,28 +291,32 @@ graph.data <- analyze.labs.serial %>%
            warf.start >= bival.start + days(1)) %>%
     mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")))
 
-graph.inr <- filter(graph.data, lab == "inr") %>%
+graph.inr2 <- filter(graph.data, lab == "inr") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = 0.4) +
-    geom_line(alpha = 0.4) +
-    geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
-    geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
-    ggtitle(fig_cap) +
-    xlab("Time from bivalirudin cessation (hours)") +
-    ylab("INR") +
-    # ylim(c(1.5, 3.5)) +
-    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
+    geom_point(alpha = graph.alpha) +
+    # geom_line(alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "black") +
+    ggtitle("B. INR and bivalirudin cessation") +
+    xlab(NULL) +
+    ylab(NULL) +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.inr) +
     theme(legend.position = "none")
 
-graph.ptt <- filter(graph.data, lab == "ptt") %>%
+graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
-    geom_smooth(aes(group = NULL), color = "red", se = FALSE) +
-    scale_x_continuous(breaks = c(-48, -24, 0, 24, 48, 72)) +
-    ylab("aPTT") +
-    theme(legend.position = "none", plot.background = element_rect(fill = "transparent"))
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(alpha = graph.alpha) +
+    # geom_line(alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "black") +
+    ggtitle("D. aPTT and bivalirudin cessation") +
+    xlab("Time from bivalirudin cessation (hours)") +
+    ylab(NULL) +
+    scale_x_continuous(breaks = x.breaks) +
+    coord_cartesian(ylim = ylim.ptt) +
+    theme(legend.position = "none")
 
-ggplot_dual_axis(graph.inr, graph.ptt, "y")
-
+grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, nrow = 2, ncol = 2, top = fig_cap)
 ```
 
