@@ -109,18 +109,25 @@ fig_nums(name = "inr_chg_bival_stop", caption = "Change in INR values at bivalir
 fig_nums(name = "dual_bival", caption = "Change in INR and aPTT values at bivalirudin initiation and cessation", display = FALSE)
 fig_nums(name = "inr_chg_all", caption = "Change in INR relative to bivalirudin initiation over 10 days", display = FALSE)
 fig_nums(name = "ptt_chg_all", caption = "Change in aPTT relative to bivalirudin cessation", display = FALSE)
+fig_nums(name = "inr_warfarin", caption = "Change in INR relative to warfarin initiation", display = FALSE)
 ```
 
 ```{r plot_params}
-xlab.start <- "Time from bivalirudin initiation (hours)"
-xlab.stop <- "Time from bivalirudin cessation (hours)"
+diff.units <- "days"
+diff <- if(diff.units == "days") days else if (diff.units == "hours") hours
+from = -2
+to = 3
+by = 1
+xlim <- c(from, to)
+x.breaks <- seq(from, to, by = by)
+xlab.start <- paste0("Time from bivalirudin initiation (", diff.units, ")")
+xlab.stop <- paste0("Time from bivalirudin cessation (", diff.units, ")")
 ylab.inr <- "INR"
 ylab.ptt <- "aPTT (seconds)"
-xlim <- c(-48, 72)
-x.breaks <- seq(-48, 72, by = 24)
 ylim.inr <- c(1, 3.5)
 ylim.ptt <- c(45, 85)
 shapes <- c(20, 21)
+shapes.limits <- c(FALSE, TRUE)
 graph.alpha <- 0.5
 ```
 
@@ -200,9 +207,10 @@ graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
-           lab.datetime <= bival.start + days(3),
+           lab.datetime >= bival.start + diff(from),
+           lab.datetime <= bival.start + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours"))) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units))) %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(alpha = graph.alpha) +
@@ -231,10 +239,10 @@ fig_cap <- fig_nums(cap)
 graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            last(lab.datetime) > bival.stop,
-           lab.datetime >= bival.stop - hours(48),
-           lab.datetime <= bival.stop + days(3),
+           lab.datetime >= bival.stop + diff(from),
+           lab.datetime <= bival.stop + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours"))) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = diff.units))) %>%
     ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(alpha = graph.alpha) +
@@ -265,9 +273,10 @@ graph.data <- analyze.labs.serial %>%
     filter(lab == "inr" | lab == "ptt",
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
-           lab.datetime <= bival.start + days(3),
+           lab.datetime >= bival.start + diff(from),
+           lab.datetime <= bival.start + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE)) 
 
 graph.inr1 <- filter(graph.data, lab == "inr") %>%
@@ -282,7 +291,7 @@ graph.inr1 <- filter(graph.data, lab == "inr") %>%
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
     scale_shape_manual(values = shapes) +
-    coord_cartesian(ylim = ylim.inr) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) +
     theme(legend.position = "none")
 
 graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
@@ -295,16 +304,16 @@ graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
     ylab(ylab.ptt) +
     scale_x_continuous(breaks = x.breaks) +
     scale_shape_manual(values = shapes) +
-    coord_cartesian(ylim = ylim.ptt) +
+    coord_cartesian(xlim = xlim, ylim = ylim.ptt) +
     theme(legend.position = "none")
 
 graph.data <- analyze.labs.serial %>%
     filter(lab == "inr" | lab == "ptt",
            last(lab.datetime) > bival.stop,
-           lab.datetime >= bival.stop - hours(48),
-           lab.datetime <= bival.stop + days(3),
+           lab.datetime >= bival.stop + diff(from),
+           lab.datetime <= bival.stop + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")),
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE))
 
 graph.inr2 <- filter(graph.data, lab == "inr") %>%
@@ -316,8 +325,8 @@ graph.inr2 <- filter(graph.data, lab == "inr") %>%
     xlab(NULL) +
     ylab(NULL) +
     scale_x_continuous(breaks = x.breaks) +
-    scale_shape_manual(values = shapes, limits = c(FALSE, TRUE)) +
-    coord_cartesian(ylim = ylim.inr) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) +
     theme(legend.position = "none")
 
 graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
@@ -329,8 +338,8 @@ graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     xlab(xlab.stop) +
     ylab(NULL) +
     scale_x_continuous(breaks = x.breaks) +
-    scale_shape_manual(values = shapes, limits = c(FALSE, TRUE)) +
-    coord_cartesian(ylim = ylim.ptt) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.ptt) +
     theme(legend.position = "none")
 
 grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, nrow = 2, ncol = 2, top = fig_cap)
@@ -339,7 +348,11 @@ grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, nrow = 2, ncol = 2,
 ```{r echo=FALSE}
 cap <- "inr_chg_all"
 fig_cap <- fig_nums(cap)
-duration = 10
+to = 10
+xlim <- c(from, to)
+x.breaks <- seq(from, to, by = by)
+shapes <- c(16, 8)
+colors <- c("red", "blue")
 ```
 
 ### `r fig_nums(cap, display = "cite")`
@@ -348,9 +361,10 @@ graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
-           lab.datetime <= bival.start + days(duration),
+           lab.datetime >= bival.start + diff(from),
+           lab.datetime <= bival.start + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
            bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
     ggplot(aes(x = bival.diff, y = result)) +
@@ -360,10 +374,10 @@ graph <- analyze.labs.serial %>%
     ggtitle(fig_cap) +
     xlab(xlab.start) +
     ylab(ylab.inr) +
-    scale_x_continuous(breaks = seq(-48, duration * 24, by = 24)) +
-    scale_shape_manual(values = c(16, 8), limits = c(FALSE, TRUE)) +
-    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
-    coord_cartesian(ylim = ylim.inr) 
+    scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = colors, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) 
 
 print(graph)
 ```
@@ -371,7 +385,9 @@ print(graph)
 ```{r echo=FALSE}
 cap <- "ptt_chg_all"
 fig_cap <- fig_nums(cap)
-duration <- 5
+to <- 5
+xlim <- c(from, to)
+x.breaks <- seq(from, to, by = by)
 ```
 
 ### `r fig_nums(cap, display = "cite")`
@@ -379,9 +395,10 @@ duration <- 5
 graph <- analyze.labs.serial %>%
     filter(lab == "ptt",
            last(lab.datetime) > bival.stop,
-           lab.datetime >= bival.stop - days(10),
+           lab.datetime >= bival.stop + diff(from),
+           lab.datetime <= bival.stop + diff(to),
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")),
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
            bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
     ggplot(aes(x = bival.diff, y = result)) +
@@ -391,10 +408,45 @@ graph <- analyze.labs.serial %>%
     ggtitle(fig_cap) +
     xlab(xlab.stop) +
     ylab(ylab.ptt) +
-    scale_x_continuous(breaks = seq(-240, duration * 24, by = 24)) +
-    scale_shape_manual(values = c(16, 8), limits = c(FALSE, TRUE)) +
-    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
-    coord_cartesian(xlim = c(-240, duration * 24), ylim = ylim.ptt) 
+    scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = colors, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.ptt) 
+
+print(graph)
+```
+
+```{r echo=FALSE}
+cap <- "inr_warfarin"
+fig_cap <- fig_nums(cap)
+from <- -7
+to <- 10
+xlim <- c(from, to)
+x.breaks <- seq(from, to, by = by)
+```
+
+### `r fig_nums(cap, display = "cite")`
+```{r inr_warfarin}
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= warf.start + diff(from),
+           lab.datetime <= warf.start + diff(to),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(warf.diff = as.numeric(difftime(lab.datetime, warf.start, units = diff.units)),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
+    ggplot(aes(x = warf.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
+    ggtitle(fig_cap) +
+    xlab(paste0("Time from warfarin initiation (", diff.units, ")")) +
+    ylab(ylab.inr) +
+    scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = colors, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) 
 
 print(graph)
 ```
