@@ -283,22 +283,27 @@ graph.inr1 <- filter(graph.data, lab == "inr") %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
-    # geom_line(alpha = graph.alpha) +
-    # geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle("A. INR and bivalirudin initiation") +
     xlab(NULL) +
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
-    scale_shape_manual(values = shapes) +
+    scale_shape_manual(values = shapes, labels = c("Before Warfarin", "On Warfarin")) +
     coord_cartesian(xlim = xlim, ylim = ylim.inr) +
-    theme(legend.position = "none")
+    labs(shape = "Lab values drawn: ") +
+    theme(legend.position = "bottom")
+
+tmp <- ggplot_gtable(ggplot_build(graph.inr1))
+leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+legend <- tmp$grobs[[leg]]
+
+graph.inr1 <- graph.inr1 + theme(legend.position = "none")
 
 graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle("C. aPTT and bivalirudin initiation") +
     xlab(xlab.start) +
     ylab(ylab.ptt) +
@@ -320,7 +325,7 @@ graph.inr2 <- filter(graph.data, lab == "inr") %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle("B. INR and bivalirudin cessation") +
     xlab(NULL) +
     ylab(NULL) +
@@ -333,7 +338,7 @@ graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle("D. aPTT and bivalirudin cessation") +
     xlab(xlab.stop) +
     ylab(NULL) +
@@ -342,7 +347,8 @@ graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     coord_cartesian(xlim = xlim, ylim = ylim.ptt) +
     theme(legend.position = "none")
 
-grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, nrow = 2, ncol = 2, top = fig_cap)
+layout <- rbind(c(1, 2), c(3, 4), c(5, 5))
+grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, legend, nrow = 3, ncol = 2, top = fig_cap, layout_matrix = layout, heights = unit(c(2, 2, 0.5), c("in", "in", "in")))
 ```
 
 ```{r echo=FALSE}
@@ -370,7 +376,7 @@ graph <- analyze.labs.serial %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle(fig_cap) +
     xlab(xlab.start) +
     ylab(ylab.inr) +
@@ -404,7 +410,7 @@ graph <- analyze.labs.serial %>%
     ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle(fig_cap) +
     xlab(xlab.stop) +
     ylab(ylab.ptt) +
@@ -439,7 +445,7 @@ graph <- analyze.labs.serial %>%
     ggplot(aes(x = warf.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue") +
+    geom_smooth(color = "black") +
     ggtitle(fig_cap) +
     xlab(paste0("Time from warfarin initiation (", diff.units, ")")) +
     ylab(ylab.inr) +
