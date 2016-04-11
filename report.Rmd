@@ -107,7 +107,23 @@ fig_nums(name = "inr_bival_stop", caption = "INR Value Prior to and 4 to 8 hours
 fig_nums(name = "inr_chg_bival_start", caption = "Change in INR values at bivalirudin initiation", display = FALSE)
 fig_nums(name = "inr_chg_bival_stop", caption = "Change in INR values at bivalirudin cessation", display = FALSE)
 fig_nums(name = "dual_bival", caption = "Change in INR and aPTT values at bivalirudin initiation and cessation", display = FALSE)
+fig_nums(name = "inr_chg_all", caption = "Change in INR relative to bivalirudin initiation over 10 days", display = FALSE)
+fig_nums(name = "ptt_chg_all", caption = "Change in aPTT relative to bivalirudin cessation", display = FALSE)
 ```
+
+```{r plot_params}
+xlab.start <- "Time from bivalirudin initiation (hours)"
+xlab.stop <- "Time from bivalirudin cessation (hours)"
+ylab.inr <- "INR"
+ylab.ptt <- "aPTT (seconds)"
+xlim <- c(-48, 72)
+x.breaks <- seq(-48, 72, by = 24)
+ylim.inr <- c(1, 3.5)
+ylim.ptt <- c(45, 85)
+shapes <- c(20, 21)
+graph.alpha <- 0.5
+```
+
 
 ```{r echo=FALSE}
 cap <- "inr_tx_ptt"
@@ -132,7 +148,7 @@ graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))
     geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
     ggtitle(fig_cap) +
     xlab(NULL) +
-    ylab("INR") +
+    ylab(ylab.inr) +
     scale_x_discrete(labels = c("Baseline", "First Therapeutic aPTT"), expand = c(0.25, 0.25)) +
     scale_color_manual(values = cols(num.cols)) +
     # theme_bw() +
@@ -163,7 +179,7 @@ graph <- ggplot(data = results, aes(x = period, y = inr, group=factor(pie.id))) 
     geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
     ggtitle(fig_cap) +
     xlab(NULL) +
-    ylab("INR") +
+    ylab(ylab.inr) +
     scale_x_discrete(labels = c("Prior to Cessation", "After Cessation"), expand = c(0.25, 0.25)) +
     # theme_bw() +
     theme(legend.position = "none")
@@ -176,9 +192,6 @@ print(graph)
 ```{r echo=FALSE}
 cap <- "inr_chg_bival_start"
 fig_cap <- fig_nums(cap)
-ylim.inr <- c(1, 3.5)
-x.breaks <- c(-48, -24, 0, 24, 48, 72)
-graph.alpha <- 0.3
 ```
 
 ### `r fig_nums(cap, display = "cite")`
@@ -197,10 +210,10 @@ graph <- analyze.labs.serial %>%
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     ggtitle(fig_cap) +
-    xlab("Time from bivalirudin initiation (hours)") +
-    ylab("INR") +
+    xlab(xlab.start) +
+    ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
-    coord_cartesian(ylim = ylim.inr) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) +
     theme(legend.position = "none")
 
 print(graph)
@@ -229,10 +242,10 @@ graph <- analyze.labs.serial %>%
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     ggtitle(fig_cap) +
-    xlab("Time from bivalirudin cessation (hours)") +
-    ylab("INR") +
+    xlab(xlab.stop) +
+    ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
-    coord_cartesian(ylim = ylim.inr) +
+    coord_cartesian(xlim = xlim, ylim = ylim.inr) +
     theme(legend.position = "none")
 
 print(graph)
@@ -240,10 +253,10 @@ print(graph)
 
 Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin cessation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before cessation and after cessation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded.
 
+
 ```{r echo=FALSE}
 cap <- "dual_bival"
 fig_cap <- fig_nums(cap)
-ylim.ptt <- c(45, 85)
 ```
 
 ### `r fig_nums(cap, display = "cite")`
@@ -258,29 +271,30 @@ graph.data <- analyze.labs.serial %>%
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE)) 
 
 graph.inr1 <- filter(graph.data, lab == "inr") %>%
-    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
+    geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
     # geom_line(alpha = graph.alpha) +
     # geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
-    geom_smooth(aes(group = NULL), color = "black") +
+    geom_smooth(aes(group = NULL), color = "blue") +
     ggtitle("A. INR and bivalirudin initiation") +
     xlab(NULL) +
-    ylab("INR") +
+    ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes) +
     coord_cartesian(ylim = ylim.inr) +
     theme(legend.position = "none")
 
 graph.ptt1 <- filter(graph.data, lab == "ptt") %>%
-    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
-    # geom_line(alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "black") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
     ggtitle("C. aPTT and bivalirudin initiation") +
-    xlab("Time from bivalirudin initiation (hours)") +
-    ylab("aPTT (seconds)") +
+    xlab(xlab.start) +
+    ylab(ylab.ptt) +
     scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes) +
     coord_cartesian(ylim = ylim.ptt) +
     theme(legend.position = "none")
 
@@ -294,31 +308,94 @@ graph.data <- analyze.labs.serial %>%
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE))
 
 graph.inr2 <- filter(graph.data, lab == "inr") %>%
-    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
-    # geom_line(alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "black") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
     ggtitle("B. INR and bivalirudin cessation") +
     xlab(NULL) +
     ylab(NULL) +
     scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = c(FALSE, TRUE)) +
     coord_cartesian(ylim = ylim.inr) +
     theme(legend.position = "none")
 
 graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
-    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
+    ggplot(aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(shape = warf.given), alpha = graph.alpha) +
-    # geom_line(alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "black") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
     ggtitle("D. aPTT and bivalirudin cessation") +
-    xlab("Time from bivalirudin cessation (hours)") +
+    xlab(xlab.stop) +
     ylab(NULL) +
     scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = c(FALSE, TRUE)) +
     coord_cartesian(ylim = ylim.ptt) +
     theme(legend.position = "none")
 
 grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, nrow = 2, ncol = 2, top = fig_cap)
+```
+
+```{r echo=FALSE}
+cap <- "inr_chg_all"
+fig_cap <- fig_nums(cap)
+duration = 10
+```
+
+### `r fig_nums(cap, display = "cite")`
+```{r inr_chg_all}
+graph <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime <= bival.start + days(duration),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
+    ggplot(aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
+    ggtitle(fig_cap) +
+    xlab(xlab.start) +
+    ylab(ylab.inr) +
+    scale_x_continuous(breaks = seq(-48, duration * 24, by = 24)) +
+    scale_shape_manual(values = c(16, 8), limits = c(FALSE, TRUE)) +
+    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
+    coord_cartesian(ylim = ylim.inr) 
+
+print(graph)
+```
+
+```{r echo=FALSE}
+cap <- "ptt_chg_all"
+fig_cap <- fig_nums(cap)
+duration <- 5
+```
+
+### `r fig_nums(cap, display = "cite")`
+```{r ptt_chg_all}
+graph <- analyze.labs.serial %>%
+    filter(lab == "ptt",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= bival.stop - days(10),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = "hours")),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
+    ggplot(aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
+    ggtitle(fig_cap) +
+    xlab(xlab.stop) +
+    ylab(ylab.ptt) +
+    scale_x_continuous(breaks = seq(-240, duration * 24, by = 24)) +
+    scale_shape_manual(values = c(16, 8), limits = c(FALSE, TRUE)) +
+    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
+    coord_cartesian(xlim = c(-240, duration * 24), ylim = ylim.ptt) 
+
+print(graph)
 ```
 
