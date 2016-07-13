@@ -460,16 +460,23 @@ print(graph)
 
 ```{r}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
-             lab.datetime >= bival.start) %>%
+             lab.datetime >= bival.start,
+             lab.datetime <= warf.start) %>%
     select(pie.id:result) %>%
     group_by(pie.id, lab) %>%
     spread(lab, result) %>%
     filter(!is.na(inr), !is.na(ptt))
 
 g <- ggplot(df, aes(x = ptt, y = inr)) +
-    geom_point(aes(color = pie.id), alpha = 0.3) +
-    geom_smooth(method = "lm")
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
 
 g
+```
+
+```{r}
+mod <- lm(inr ~ ptt, data = df)
+summary(mod)
 ```
 
