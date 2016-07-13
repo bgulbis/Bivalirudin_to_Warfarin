@@ -368,7 +368,8 @@ graph <- analyze.labs.serial %>%
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
            lab.datetime >= bival.start + diff(from),
-           lab.datetime <= bival.start + diff(to),
+           # lab.datetime <= bival.start + diff(to),
+           lab.datetime <= warf.start,
            warf.start >= bival.start + days(1)) %>%
     mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
@@ -455,5 +456,20 @@ graph <- analyze.labs.serial %>%
     coord_cartesian(xlim = xlim, ylim = ylim.inr) 
 
 print(graph)
+```
+
+```{r}
+df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
+             lab.datetime >= bival.start) %>%
+    select(pie.id:result) %>%
+    group_by(pie.id, lab) %>%
+    spread(lab, result) %>%
+    filter(!is.na(inr), !is.na(ptt))
+
+g <- ggplot(df, aes(x = ptt, y = inr)) +
+    geom_point(aes(color = pie.id), alpha = 0.3) +
+    geom_smooth(method = "lm")
+
+g
 ```
 
