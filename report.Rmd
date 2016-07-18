@@ -657,6 +657,7 @@ tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change"))
 
 knitr::kable(ptbl)
+summary(tbl)
 ```
 
 ```{r}
@@ -664,5 +665,33 @@ tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl)
+```
+
+#### Fig 1 Revised
+```{r}
+results <- df %>%
+    rename(inr1 = inr.before,
+           inr2 = inr) %>%
+    group_by(pie.id) %>%
+    gather(period, inr, inr1, inr2)
+
+cols <- colorRampPalette(brewer.pal(8, "Set1"))
+num.cols <- nrow(distinct(results, pie.id))
+
+graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
+    geom_line(size = 1, aes(colour = pie.id)) +
+    geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
+    # ggtitle(fig_cap) +
+    xlab(NULL) +
+    ylab("INR") +
+    scale_x_discrete(labels = c("Baseline", "First Therapeutic aPTT\n with INR"), expand = c(0.25, 0.25)) +
+    scale_color_manual(values = cols(num.cols)) +
+    # theme_bw() +
+    theme(legend.position = "none")
+    # theme(legend.position = "none", plot.title = element_text(size = 20), 
+    #       axis.title = element_text(size = 18), axis.text = element_text(size = 16))
+
+print(graph)
+
 ```
 
