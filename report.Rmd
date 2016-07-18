@@ -368,8 +368,8 @@ graph <- analyze.labs.serial %>%
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
            lab.datetime >= bival.start + diff(from),
-           # lab.datetime <= bival.start + diff(to),
-           lab.datetime <= warf.start,
+           lab.datetime <= bival.start + diff(to),
+           # lab.datetime <= warf.start,
            warf.start >= bival.start + days(1)) %>%
     mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
@@ -514,7 +514,6 @@ g <- ggplot(df, aes(x = ptt, y = inr.change.pct)) +
 g
 ```
 
-
 #### Linear Regression Model
 ```{r}
 mod <- lm(inr.change ~ ptt, data = df)
@@ -525,3 +524,33 @@ summary(mod)
 mod <- lm(inr.change.pct ~ ptt, data = df)
 summary(mod)
 ```
+
+### INR Response to Bival
+```{r}
+df <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime >= bival.start + diff(-1),
+           # lab.datetime <= bival.start + diff(to),
+           lab.datetime <= warf.start,
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) 
+    
+g <- ggplot(df, aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), color = bival.given), alpha = graph.alpha) +
+    geom_smooth(color = "black") +
+    # ggtitle(fig_cap) +
+    # xlab(xlab.start) +
+    # ylab(ylab.inr) +
+    scale_x_continuous(breaks = seq(-1, 10, by = 1)) +
+    # scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
+    coord_cartesian(xlim = c(-1, 10), ylim = c(1, 3.5)) 
+
+g
+```
+
