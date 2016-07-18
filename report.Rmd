@@ -24,6 +24,7 @@ library(gridExtra)
 library(RColorBrewer)
 library(pander)
 library(captioner)
+library(tableone)
 panderOptions("table.split.table", Inf)
 fig_nums <- captioner()
 ```
@@ -503,6 +504,21 @@ g <- ggplot(df, aes(x = ptt, y = inr.change)) +
 g
 ```
 
+```{r}
+vars <- c("inr.before", "inr", "ptt", "inr.change")
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl)
+
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change"))
+
+knitr::kable(ptbl)
+
+```
+
+
 #### PTT vs. % INR Change
 
 ```{r}
@@ -604,17 +620,48 @@ g <- ggplot(df, aes(x = bival.diff, y = result)) +
     # ggtitle(fig_cap) +
     # xlab(xlab.start) +
     # ylab(ylab.inr) +
-    scale_x_continuous(breaks = seq(-1, 10, by = 1)) +
+    scale_x_continuous(breaks = seq(-1, 5, by = 1), limits = c(-1, 5)) +
+    # xlim = c(-1, 5) +
     # scale_shape_manual(values = shapes, limits = shapes.limits) +
-    scale_color_manual(values = c("red", "blue"), limits = c(FALSE, TRUE)) +
-    coord_cartesian(xlim = c(-1, 10), ylim = c(1, 3.5)) 
+    scale_color_manual(values = c("red", "blue")) +
+    coord_cartesian(ylim = c(1, 3.5)) 
+
+g
+```
+
+#### INR Response to Bival when PTT is therapeutic
+```{r}
+df <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime >= bival.start + diff(-1),
+           # lab.datetime <= bival.start + diff(to),
+           lab.datetime <= warf.start,
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) 
+    
+g <- ggplot(df, aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), color = bival.given), alpha = graph.alpha) +
+    geom_smooth(color = "black") +
+    # ggtitle(fig_cap) +
+    # xlab(xlab.start) +
+    # ylab(ylab.inr) +
+    scale_x_continuous(breaks = seq(-1, 5, by = 1), limits = c(-1, 5)) +
+    # xlim = c(-1, 5) +
+    # scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = c("red", "blue")) +
+    coord_cartesian(ylim = c(1, 3.5)) 
 
 g
 ```
 
 ## Post-Hoc Analysis
 
-#### Change in INR at time of first therapeutic PTT with an INR
+#### Change in INR at time of therapeutic PTT with an INR
 ```{r}
 ptt <- analyze.labs.serial %>%
     filter(lab == "ptt",
@@ -633,11 +680,11 @@ inr <- analyze.labs.serial %>%
     select(pie.id, lab.datetime, inr = result, inr.before)
 
 df <- inner_join(ptt, inr, by = c("pie.id", "lab.datetime")) %>%
-    mutate(duration = difftime(lab.datetime, bival.start, units = "hours"),
+    mutate(duration = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
            inr.change = inr - inr.before) %>%
     arrange(pie.id, lab.datetime) %>%
-    group_by(pie.id) %>%
-    summarize_all(funs(first))
+    group_by(pie.id) #%>%
+    # summarize_all(funs(first))
 
 # n.pts <- distinct(df, pie.id)
 
@@ -651,10 +698,10 @@ g
 
 ```{r}
 library(tableone)
-vars <- c("inr.before", "inr", "ptt", "inr.change")
+vars <- c("inr.before", "inr", "ptt", "inr.change", "duration")
 
 tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change"))
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change", "duration"))
 
 knitr::kable(ptbl)
 summary(tbl)
@@ -663,8 +710,20 @@ summary(tbl)
 ```{r}
 tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE)
-
 knitr::kable(ptbl)
+```
+
+#### Change in INR at time of first therapeutic PTT with an INR
+```{r}
+df <- df %>%
+    summarize_all(funs(first))
+
+g <- ggplot(df, aes(x = ptt, y = inr.change)) +
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
+
+g
 ```
 
 #### Fig 1 Revised
