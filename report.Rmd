@@ -464,7 +464,7 @@ df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
     select(pie.id:result) %>%
-    group_by(pie.id, lab) %>%
+    group_by(pie.id, lab.datetime) %>%
     spread(lab, result) %>%
     filter(!is.na(inr), !is.na(ptt))
 
@@ -488,7 +488,7 @@ df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
     select(pie.id:result) %>%
-    group_by(pie.id, lab) %>%
+    group_by(pie.id, lab.datetime) %>%
     spread(lab, result) %>%
     filter(!is.na(inr), !is.na(ptt)) %>%
     inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
@@ -525,6 +525,64 @@ mod <- lm(inr.change.pct ~ ptt, data = df)
 summary(mod)
 ```
 
+#### PTT vs. Median INR Change per Patient
+```{r}
+df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
+             lab.datetime >= bival.start,
+             lab.datetime <= warf.start) %>%
+    select(pie.id:result) %>%
+    group_by(pie.id, lab.datetime) %>%
+    spread(lab, result) %>%
+    filter(!is.na(inr), !is.na(ptt)) %>%
+    inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
+    mutate(inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before) %>%
+    group_by(pie.id) %>%
+    summarize(inr.change = median(inr.change),
+              ptt = median(ptt))
+
+g <- ggplot(df, aes(x = ptt, y = inr.change)) +
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
+
+g
+
+```
+
+#### INR Change with Therapeutic aPTT
+```{r}
+df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
+             lab.datetime >= bival.start,
+             lab.datetime <= warf.start) %>%
+    select(pie.id:result) %>%
+    group_by(pie.id, lab.datetime) %>%
+    spread(lab, result) %>%
+    filter(!is.na(inr), 
+           !is.na(ptt),
+           ptt >= 50,
+           ptt <= 80) %>%
+    inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
+    filter(!is.na(inr.before)) %>%
+    mutate(inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before)
+
+library(tableone)
+vars <- c("inr.before", "inr", "ptt", "inr.change")
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change"))
+
+knitr::kable(ptbl)
+```
+
+```{r}
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl)
+```
+
 ### INR Response to Bival
 ```{r}
 df <- analyze.labs.serial %>%
@@ -552,5 +610,59 @@ g <- ggplot(df, aes(x = bival.diff, y = result)) +
     coord_cartesian(xlim = c(-1, 10), ylim = c(1, 3.5)) 
 
 g
+```
+
+## Post-Hoc Analysis
+
+#### Change in INR at time of first therapeutic PTT with an INR
+```{r}
+ptt <- analyze.labs.serial %>%
+    filter(lab == "ptt",
+           result >= 50,
+           result <= 80,
+           lab.datetime >= bival.start,
+           lab.datetime <= warf.start) %>%
+    select(pie.id, lab.datetime, bival.start, ptt = result)
+
+inr <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           lab.datetime >= bival.start,
+           lab.datetime <= warf.start) %>%
+    inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
+    filter(!is.na(inr.before)) %>%
+    select(pie.id, lab.datetime, inr = result, inr.before)
+
+df <- inner_join(ptt, inr, by = c("pie.id", "lab.datetime")) %>%
+    mutate(duration = difftime(lab.datetime, bival.start, units = "hours"),
+           inr.change = inr - inr.before) %>%
+    arrange(pie.id, lab.datetime) %>%
+    group_by(pie.id) %>%
+    summarize_all(funs(first))
+
+# n.pts <- distinct(df, pie.id)
+
+g <- ggplot(df, aes(x = ptt, y = inr.change)) +
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
+
+g
+```
+
+```{r}
+library(tableone)
+vars <- c("inr.before", "inr", "ptt", "inr.change")
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change"))
+
+knitr::kable(ptbl)
+```
+
+```{r}
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl)
 ```
 
