@@ -29,7 +29,7 @@ fig_nums <- captioner()
 ```
 
 ```{r data, echo=FALSE}
-get_rds("Analysis")
+tmp <- get_rds("Analysis")
 ```
 
 ## Results
@@ -492,7 +492,8 @@ df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
     spread(lab, result) %>%
     filter(!is.na(inr), !is.na(ptt)) %>%
     inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
-    mutate(inr.change = inr - inr.before)
+    mutate(inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before)
 
 g <- ggplot(df, aes(x = ptt, y = inr.change)) +
     geom_point(alpha = 0.3) +
@@ -502,8 +503,25 @@ g <- ggplot(df, aes(x = ptt, y = inr.change)) +
 g
 ```
 
+#### PTT vs. % INR Change
+
+```{r}
+g <- ggplot(df, aes(x = ptt, y = inr.change.pct)) +
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
+
+g
+```
+
+
 #### Linear Regression Model
 ```{r}
 mod <- lm(inr.change ~ ptt, data = df)
+summary(mod)
+```
+
+```{r}
+mod <- lm(inr.change.pct ~ ptt, data = df)
 summary(mod)
 ```
