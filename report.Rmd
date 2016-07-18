@@ -40,7 +40,7 @@ x <- result_table("table", analyze.demographics, group = NULL)
 pander(x)
 ```
 
-### Past Medical History
+### Comorbidities
 ```{r pmh}
 x <- result_table("table", analyze.diagnosis, group = NULL)
 pander(x)
@@ -458,6 +458,7 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
+### Scatter Plot - PTT vs. INR
 ```{r}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
@@ -475,8 +476,34 @@ g <- ggplot(df, aes(x = ptt, y = inr)) +
 g
 ```
 
+#### Linear Regression Model
 ```{r}
 mod <- lm(inr ~ ptt, data = df)
 summary(mod)
 ```
 
+### Scatter Plot - PTT vs. Change in INR
+```{r}
+df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
+             lab.datetime >= bival.start,
+             lab.datetime <= warf.start) %>%
+    select(pie.id:result) %>%
+    group_by(pie.id, lab) %>%
+    spread(lab, result) %>%
+    filter(!is.na(inr), !is.na(ptt)) %>%
+    inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
+    mutate(inr.change = inr - inr.before)
+
+g <- ggplot(df, aes(x = ptt, y = inr.change)) +
+    geom_point(alpha = 0.3) +
+    geom_smooth(method = "lm") +
+    theme(legend.position = "none")
+
+g
+```
+
+#### Linear Regression Model
+```{r}
+mod <- lm(inr.change ~ ptt, data = df)
+summary(mod)
+```
