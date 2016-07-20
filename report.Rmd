@@ -9,11 +9,11 @@ output:
     toc: yes
     toc_float: yes
 ---
-```{r global_options, echo=FALSE}
+```{r global_options, include=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
-```{r library}
+```{r setup, include=FALSE}
 library(BGTools)
 library(dplyr)
 library(tidyr)
@@ -23,13 +23,9 @@ library(grid)
 library(gridExtra)
 library(RColorBrewer)
 library(pander)
-library(captioner)
 library(tableone)
 panderOptions("table.split.table", Inf)
-fig_nums <- captioner()
-```
 
-```{r data, echo=FALSE}
 tmp <- get_rds("Analysis")
 ```
 
@@ -37,8 +33,18 @@ tmp <- get_rds("Analysis")
 
 ### Demographics
 ```{r demographics}
-x <- result_table("table", analyze.demographics, group = NULL)
-pander(x)
+vars <- c("age", "sex", "race", "los", "disposition")
+fvars <- c("sex", "race", "disposition")
+
+tbl <- CreateTableOne(vars = vars, data = analyze.demographics, factorVars = fvars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Demographics")
+
+ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = c("age", "los"))
+
+knitr::kable(ptbl, caption = "Demographics")
+
 ```
 
 ### Comorbidities
@@ -102,16 +108,6 @@ pander(x)
 ```
 
 ## Figures
-```{r fig_caps, echo=FALSE}
-fig_nums(name = "inr_tx_ptt", caption = "INR Value at Baseline and Time of First Therapeutic aPTT", display = FALSE)
-fig_nums(name = "inr_bival_stop", caption = "INR Value Prior to and 4 to 8 hours After Bivalirudin Cessation", display = FALSE)
-fig_nums(name = "inr_chg_bival_start", caption = "Change in INR values at bivalirudin initiation", display = FALSE)
-fig_nums(name = "inr_chg_bival_stop", caption = "Change in INR values at bivalirudin cessation", display = FALSE)
-fig_nums(name = "dual_bival", caption = "Change in INR and aPTT values at bivalirudin initiation and cessation", display = FALSE)
-fig_nums(name = "inr_chg_all", caption = "Change in INR relative to bivalirudin initiation over 10 days", display = FALSE)
-fig_nums(name = "ptt_chg_all", caption = "Change in aPTT relative to bivalirudin cessation", display = FALSE)
-fig_nums(name = "inr_warfarin", caption = "Change in INR relative to warfarin initiation", display = FALSE)
-```
 
 ```{r plot_params}
 diff.units <- "days"
@@ -133,13 +129,8 @@ graph.alpha <- 0.5
 ```
 
 
-```{r echo=FALSE}
-cap <- "inr_tx_ptt"
-fig_cap <- fig_nums(cap)
-```
-
-### `r fig_nums(cap, display = "cite")`
-```{r inr_tx_ptt}
+### INR Values
+```{r inr_tx_ptt, fig.cap="INR Value at Baseline and Time of First Therapeutic aPTT - 14 Patients"}
 results <- select(analyze.coags, pie.id, inr.before, inr.txptt) %>%
     rename(inr1 = inr.before,
            inr2 = inr.txptt) %>%
@@ -154,7 +145,7 @@ num.cols <- nrow(select(results, pie.id) %>% distinct)
 graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))) +
     geom_line(size = 1, aes(colour = pie.id)) +
     geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(NULL) +
     ylab(ylab.inr) +
     scale_x_discrete(labels = c("Baseline", "First Therapeutic aPTT"), expand = c(0.25, 0.25)) +
@@ -167,13 +158,9 @@ graph <- ggplot(data = results, aes(x = period, y = inr, group = factor(pie.id))
 print(graph)
 ```
 
-```{r echo=FALSE}
-cap <- "inr_bival_stop"
-fig_cap <- fig_nums(cap)
-```
+This figure was limited to only those patients who had an INR drawn at the same time as their first therapeutic PTT
 
-### `r fig_nums(cap, display = "cite")`
-```{r inr_bival_stop}
+```{r inr_bival_stop, fig.cap="INR Value Prior to and 4 to 8 hours After Bivalirudin Cessation"}
 results <- select(analyze.coags, pie.id, inr.before.stop, inr.after.stop) %>%
     rename(inr1 = inr.before.stop,
            inr2 = inr.after.stop) %>%
@@ -185,7 +172,7 @@ results <- select(analyze.coags, pie.id, inr.before.stop, inr.after.stop) %>%
 graph <- ggplot(data = results, aes(x = period, y = inr, group=factor(pie.id))) +
     geom_line(size = 1, aes(colour = pie.id)) +
     geom_point(size = 5, pch = 21, fill = "salmon", alpha = 0.5) +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(NULL) +
     ylab(ylab.inr) +
     scale_x_discrete(labels = c("Prior to Cessation", "After Cessation"), expand = c(0.25, 0.25)) +
@@ -197,13 +184,9 @@ graph <- ggplot(data = results, aes(x = period, y = inr, group=factor(pie.id))) 
 print(graph)
 ```
 
-```{r echo=FALSE}
-cap <- "inr_chg_bival_start"
-fig_cap <- fig_nums(cap)
-```
+### Change in INR
 
-### `r fig_nums(cap, display = "cite")`
-```{r inr_chg_bival_start}
+```{r inr_chg_bival_start, fig.cap="Change in INR values at bivalirudin initiation"}
 graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            first(lab.datetime) < bival.start,
@@ -218,7 +201,7 @@ graph <- analyze.labs.serial %>%
     geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(xlab.start) +
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
@@ -228,15 +211,9 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
-Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin initation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before initiation and after initiation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded, so the INR increase during the first 24 hours of bivalirudin infusion should be the result of bivalirudin.
+This figure is depicting the mean INR value before and after bivalirudin initation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before initiation and after initiation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded, so the INR increase during the first 24 hours of bivalirudin infusion should be the result of bivalirudin.
 
-```{r echo=FALSE}
-cap <- "inr_chg_bival_stop"
-fig_cap <- fig_nums(cap)
-```
-
-### `r fig_nums(cap, display = "cite")`
-```{r inr_chg_bival_stop}
+```{r inr_chg_bival_stop, fig.cap="Change in INR values at bivalirudin cessation"}
 graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            last(lab.datetime) > bival.stop,
@@ -250,7 +227,7 @@ graph <- analyze.labs.serial %>%
     geom_line(alpha = graph.alpha) +
     geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
     geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(xlab.stop) +
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
@@ -260,16 +237,9 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
-Figure `r fig_nums(cap, display = "num")` is depicting the mean INR value before and after bivalirudin cessation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before cessation and after cessation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded.
+This figure is depicting the mean INR value before and after bivalirudin cessation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before cessation and after cessation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded.
 
-
-```{r echo=FALSE}
-cap <- "dual_bival"
-fig_cap <- fig_nums(cap)
-```
-
-### `r fig_nums(cap, display = "cite")`
-```{r dual_bival}
+```{r dual_bival, fig.cap="Change in INR and aPTT values at bivalirudin initiation and cessation"}
 graph.data <- analyze.labs.serial %>%
     filter(lab == "inr" | lab == "ptt",
            first(lab.datetime) < bival.start,
@@ -349,21 +319,16 @@ graph.ptt2 <- filter(graph.data, lab == "ptt") %>%
     theme(legend.position = "none")
 
 layout <- rbind(c(1, 2), c(3, 4), c(5, 5))
-grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, legend, nrow = 3, ncol = 2, top = fig_cap, layout_matrix = layout, heights = unit(c(2, 2, 0.5), c("in", "in", "in")))
+grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, legend, nrow = 3, ncol = 2, layout_matrix = layout, heights = unit(c(2, 2, 0.5), c("in", "in", "in")))
 ```
 
-```{r echo=FALSE}
-cap <- "inr_chg_all"
-fig_cap <- fig_nums(cap)
+```{r inr_chg_all, fig.cap="Change in INR relative to bivalirudin initiation over 10 days"}
 to = 10
 xlim <- c(from, to)
 x.breaks <- seq(from, to, by = by)
 shapes <- c(16, 8)
 colors <- c("red", "blue")
-```
 
-### `r fig_nums(cap, display = "cite")`
-```{r inr_chg_all}
 graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            first(lab.datetime) < bival.start,
@@ -379,7 +344,7 @@ graph <- analyze.labs.serial %>%
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
     geom_smooth(color = "black") +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(xlab.start) +
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
@@ -390,51 +355,41 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
-```{r echo=FALSE}
-cap <- "ptt_chg_all"
-fig_cap <- fig_nums(cap)
-to <- 5
-xlim <- c(from, to)
-x.breaks <- seq(from, to, by = by)
-```
-
-### `r fig_nums(cap, display = "cite")`
-```{r ptt_chg_all}
-graph <- analyze.labs.serial %>%
-    filter(lab == "ptt",
-           last(lab.datetime) > bival.stop,
-           lab.datetime >= bival.stop + diff(from),
-           lab.datetime <= bival.stop + diff(to),
+```{r fig.cap="Change in INR relative to bivalirudin initiation Prior to warfarin"}
+df <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           first(lab.datetime) < bival.start,
+           last(lab.datetime) > bival.start,
+           lab.datetime >= bival.start - days(1),
+           # lab.datetime <= bival.start + diff(to),
+           lab.datetime <= warf.start,
            warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = diff.units)),
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "days")),
            warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
-           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
-    ggplot(aes(x = bival.diff, y = result)) +
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) 
+    
+g <- ggplot(df, aes(x = bival.diff, y = result)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
+    geom_point(aes(group = factor(pie.id), color = bival.given), alpha = 0.5) +
     geom_smooth(color = "black") +
-    ggtitle(fig_cap) +
-    xlab(xlab.stop) +
-    ylab(ylab.ptt) +
-    scale_x_continuous(breaks = x.breaks) +
-    scale_shape_manual(values = shapes, limits = shapes.limits) +
-    scale_color_manual(values = colors, limits = shapes.limits) +
-    coord_cartesian(xlim = xlim, ylim = ylim.ptt) 
+    # ggtitle(fig_cap) +
+    # xlab(xlab.start) +
+    # ylab(ylab.inr) +
+    scale_x_continuous(breaks = seq(-1, 5, by = 1), limits = c(-1, 5)) +
+    # xlim = c(-1, 5) +
+    # scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = c("red", "blue")) +
+    coord_cartesian(ylim = c(1, 3.5)) 
 
-print(graph)
+g
 ```
 
-```{r echo=FALSE}
-cap <- "inr_warfarin"
-fig_cap <- fig_nums(cap)
+```{r inr_warfarin, fig.cap="Change in INR relative to warfarin initiation"}
 from <- -7
 to <- 10
 xlim <- c(from, to)
 x.breaks <- seq(from, to, by = by)
-```
 
-### `r fig_nums(cap, display = "cite")`
-```{r inr_warfarin}
 graph <- analyze.labs.serial %>%
     filter(lab == "inr",
            last(lab.datetime) > bival.stop,
@@ -448,7 +403,7 @@ graph <- analyze.labs.serial %>%
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
     geom_smooth(color = "black") +
-    ggtitle(fig_cap) +
+    # ggtitle(fig_cap) +
     xlab(paste0("Time from warfarin initiation (", diff.units, ")")) +
     ylab(ylab.inr) +
     scale_x_continuous(breaks = x.breaks) +
@@ -459,8 +414,38 @@ graph <- analyze.labs.serial %>%
 print(graph)
 ```
 
-### Scatter Plot - PTT vs. INR
-```{r}
+### Change in PTT
+```{r ptt_chg_all, fig.cap="Change in aPTT relative to bivalirudin cessation"}
+to <- 5
+xlim <- c(from, to)
+x.breaks <- seq(from, to, by = by)
+
+graph <- analyze.labs.serial %>%
+    filter(lab == "ptt",
+           last(lab.datetime) > bival.stop,
+           lab.datetime >= bival.stop + diff(from),
+           lab.datetime <= bival.stop + diff(to),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.stop, units = diff.units)),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
+           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) %>%
+    ggplot(aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes(group = factor(pie.id), shape = warf.given, color = bival.given), alpha = graph.alpha) +
+    geom_smooth(color = "black") +
+    # ggtitle(fig_cap) +
+    xlab(xlab.stop) +
+    ylab(ylab.ptt) +
+    scale_x_continuous(breaks = x.breaks) +
+    scale_shape_manual(values = shapes, limits = shapes.limits) +
+    scale_color_manual(values = colors, limits = shapes.limits) +
+    coord_cartesian(xlim = xlim, ylim = ylim.ptt) 
+
+print(graph)
+```
+
+### Scatter Plots
+```{r fig.cap="PTT vs. INR"}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
@@ -477,14 +462,12 @@ g <- ggplot(df, aes(x = ptt, y = inr)) +
 g
 ```
 
-#### Linear Regression Model
 ```{r}
 mod <- lm(inr ~ ptt, data = df)
 summary(mod)
 ```
 
-### Scatter Plot - PTT vs. Change in INR
-```{r}
+```{r fig.cap="PTT vs. Change in INR"}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
@@ -518,10 +501,12 @@ knitr::kable(ptbl)
 
 ```
 
-
-#### PTT vs. % INR Change
-
 ```{r}
+mod <- lm(inr.change ~ ptt, data = df)
+summary(mod)
+```
+
+```{r fig.cap="PTT vs. Percent INR Change"}
 g <- ggplot(df, aes(x = ptt, y = inr.change.pct)) +
     geom_point(alpha = 0.3) +
     geom_smooth(method = "lm") +
@@ -530,19 +515,12 @@ g <- ggplot(df, aes(x = ptt, y = inr.change.pct)) +
 g
 ```
 
-#### Linear Regression Model
-```{r}
-mod <- lm(inr.change ~ ptt, data = df)
-summary(mod)
-```
-
 ```{r}
 mod <- lm(inr.change.pct ~ ptt, data = df)
 summary(mod)
 ```
 
-#### PTT vs. Median INR Change per Patient
-```{r}
+```{r fig.cap="PTT vs. Median INR Change per Patient"}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
@@ -566,8 +544,7 @@ g
 
 ```
 
-#### INR Change with Therapeutic aPTT
-```{r}
+```{r fig.cap="INR Change with Therapeutic aPTT"}
 df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
              lab.datetime >= bival.start,
              lab.datetime <= warf.start) %>%
@@ -599,76 +576,16 @@ ptbl <- print(tbl, printToggle = FALSE)
 knitr::kable(ptbl)
 ```
 
-### INR Response to Bival
-```{r}
-df <- analyze.labs.serial %>%
-    filter(lab == "inr",
-           first(lab.datetime) < bival.start,
-           last(lab.datetime) > bival.start,
-           lab.datetime >= bival.start + diff(-1),
-           # lab.datetime <= bival.start + diff(to),
-           lab.datetime <= warf.start,
-           warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
-           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
-           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) 
-    
-g <- ggplot(df, aes(x = bival.diff, y = result)) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(group = factor(pie.id), color = bival.given), alpha = graph.alpha) +
-    geom_smooth(color = "black") +
-    # ggtitle(fig_cap) +
-    # xlab(xlab.start) +
-    # ylab(ylab.inr) +
-    scale_x_continuous(breaks = seq(-1, 5, by = 1), limits = c(-1, 5)) +
-    # xlim = c(-1, 5) +
-    # scale_shape_manual(values = shapes, limits = shapes.limits) +
-    scale_color_manual(values = c("red", "blue")) +
-    coord_cartesian(ylim = c(1, 3.5)) 
+### Post-Hoc Analysis
 
-g
-```
-
-#### INR Response to Bival when PTT is therapeutic
-```{r}
-df <- analyze.labs.serial %>%
-    filter(lab == "inr",
-           first(lab.datetime) < bival.start,
-           last(lab.datetime) > bival.start,
-           lab.datetime >= bival.start + diff(-1),
-           # lab.datetime <= bival.start + diff(to),
-           lab.datetime <= warf.start,
-           warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
-           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE),
-           bival.given = ifelse(lab.datetime >= bival.start & lab.datetime <= bival.stop, TRUE, FALSE)) 
-    
-g <- ggplot(df, aes(x = bival.diff, y = result)) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(group = factor(pie.id), color = bival.given), alpha = graph.alpha) +
-    geom_smooth(color = "black") +
-    # ggtitle(fig_cap) +
-    # xlab(xlab.start) +
-    # ylab(ylab.inr) +
-    scale_x_continuous(breaks = seq(-1, 5, by = 1), limits = c(-1, 5)) +
-    # xlim = c(-1, 5) +
-    # scale_shape_manual(values = shapes, limits = shapes.limits) +
-    scale_color_manual(values = c("red", "blue")) +
-    coord_cartesian(ylim = c(1, 3.5)) 
-
-g
-```
-
-## Post-Hoc Analysis
-
-#### Change in INR at time of therapeutic PTT with an INR
-```{r}
+```{r fig.cap="Change in INR at time of therapeutic PTT with an INR"}
 ptt <- analyze.labs.serial %>%
     filter(lab == "ptt",
            result >= 50,
            result <= 80,
            lab.datetime >= bival.start,
-           lab.datetime <= warf.start) %>%
+           lab.datetime <= warf.start,
+           lab.datetime <= bival.stop) %>%
     select(pie.id, lab.datetime, bival.start, ptt = result)
 
 inr <- analyze.labs.serial %>%
@@ -697,24 +614,39 @@ g
 ```
 
 ```{r}
-library(tableone)
 vars <- c("inr.before", "inr", "ptt", "inr.change", "duration")
 
 tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change", "duration"))
+ptbl <- print(tbl, printToggle = FALSE)
 
-knitr::kable(ptbl)
+knitr::kable(ptbl, caption = "Values for Change in INR at time of Therapeutic PTT")
 summary(tbl)
 ```
 
 ```{r}
 tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = c("inr.before", "inr", "ptt", "inr.change", "duration"))
 knitr::kable(ptbl)
 ```
 
-#### Change in INR at time of first therapeutic PTT with an INR
-```{r}
+```{r fig.cap="Change in INR vs. Time from Bivalirudin Onset"}
+g <- ggplot(df, aes(x = duration, y = inr.change, color = ptt)) +
+    geom_point() +
+    geom_smooth(method = "lm") 
+
+g
+```
+
+```{r fig.cap="Change in INR vs. Time from Bivalirudin Onset over first 5 days"}
+g <- ggplot(df, aes(x = duration, y = inr.change, color = ptt)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    xlim(c(0, 24*5)) 
+
+g
+```
+
+```{r fig.cap="Change in first INR at time of first therapeutic PTT with an INR"}
 df <- df %>%
     summarize_all(funs(first))
 
@@ -726,8 +658,7 @@ g <- ggplot(df, aes(x = ptt, y = inr.change)) +
 g
 ```
 
-#### Fig 1 Revised
-```{r}
+```{r fig.cap="INR Value at Baseline and Time of First Therapeutic aPTT with INR - 26 Patients"}
 results <- df %>%
     rename(inr1 = inr.before,
            inr2 = inr) %>%
@@ -754,3 +685,4 @@ print(graph)
 
 ```
 
+The above figure is the same as the very first figure, except the INR at the time of the first therapeutic PTT with an INR was used.
