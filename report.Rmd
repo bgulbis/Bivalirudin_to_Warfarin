@@ -22,92 +22,217 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
-library(pander)
 library(tableone)
-panderOptions("table.split.table", Inf)
 
 tmp <- get_rds("Analysis")
 ```
 
 ## Results
 
-### Demographics
+### Baseline Characteristics
 ```{r demographics}
-vars <- c("age", "sex", "race", "los", "disposition")
-fvars <- c("sex", "race", "disposition")
+df <- analyze.demographics %>%
+    select(Age = age,
+           Sex = sex,
+           Race = race,
+           `Length of Stay` = los,
+           `Discarge Disposition` = disposition)
 
-tbl <- CreateTableOne(vars = vars, data = analyze.demographics, factorVars = fvars)
+vars <- names(df)
+fvars <- names(df)[c(2, 3, 5)]
+
+tbl <- CreateTableOne(vars = vars, data = df, factorVars = fvars)
 ptbl <- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = "Demographics")
 
-ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = c("age", "los"))
+ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = names(df)[c(1, 4)])
 
-knitr::kable(ptbl, caption = "Demographics")
-
+knitr::kable(ptbl, caption = "Demographics (Medians)")
 ```
 
-### Comorbidities
 ```{r pmh}
-x <- result_table("table", analyze.diagnosis, group = NULL)
-pander(x)
+vars <- names(analyze.diagnosis[-1])
+
+tbl <- CreateTableOne(vars = vars, data = analyze.diagnosis, factorVars = vars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Comorbidities")
 ```
 
-### Anticoagulation Indications
 ```{r indications}
-x <- result_table("table", analyze.indications, group = NULL)
-pander(x)
+vars <- names(analyze.indications[-1])
+
+tbl <- CreateTableOne(vars = vars, data = analyze.indications, factorVars = vars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Anticoagulation Indications")
 ```
 
-### Bleeding and Thrombosis
-```{r events}
-x <- result_table("table", analyze.bleed, group = NULL)
-pander(x)
-```
-
-### Baseline Labs
 ```{r labs}
-x <- result_table("table", analyze.labs, group = NULL)
-pander(x)
+vars <- names(analyze.labs[-1])
+fvars <- "elisa"
+
+tbl <- CreateTableOne(vars = vars, data = analyze.labs, factorVars = fvars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Baseline Labs")
+
+ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars[-6])
+
+knitr::kable(ptbl, caption = "Baseline Labs (Medians)")
 ```
 
-### Percent PTT Values
-```{r percent_tx}
-x <- result_table("table", analyze.ptt.perc, group = NULL)
-pander(x)
-```
-
-### Bivalirudin Infusion
-```{r bival}
-x <- result_table("table", analyze.bival, group = NULL)
-pander(x)
-```
-
-### Medications During Hospitalization
 ```{r meds}
-x <- result_table("table", analyze.meds, group = NULL)
-pander(x)
+vars <- names(analyze.meds[-1])
+
+tbl <- CreateTableOne(vars = vars, data = analyze.meds, factorVars = vars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Medications Administered During Hospitalization")
 ```
 
-### Blood Products
-```{r prbc}
-x <- result_table("table", analyze.prbc, group = NULL)
-pander(x)
+### Bivalirudin Data
+
+```{r bival}
+df <- inner_join(analyze.bival, analyze.demographics[c("pie.id", "bival.prior.warf", "overlap", "proc.48hrs")], by = "pie.id") %>%
+    select(`Starting Rate` = first.rate,
+           `Final Rate` = last.rate,
+           `Minimum Rate` = min.rate,
+           `Maximum Rate` = max.rate,
+           `Drip Rate AUC` = auc.rate,
+           `Drip Duration` = bival.duration,
+           `Time-Weighted Average Rate` = time.wt.rate,
+           `Drip Duration Prior to Warfarin` = bival.prior.warf,
+           `Days Overlap with Warfarin` = overlap,
+           `Procedure Prior to Bivalirudin` = proc.48hrs)
+
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Bivalirudin Infusion Information")
+
+ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = "Bivalirudin Infusion (Medians)")
 ```
 
-### Reversal Agents
-```{r reversal}
-x <- result_table("table", analyze.reversal, group = NULL)
-pander(x)
+```{r percent_tx}
+df <- analyze.ptt.perc %>%
+    select(`Within Goal PTT Range` = perc.time.goal,
+           `Below Goal PTT Range` = perc.time.low,
+           `Above Goal PTT Range` = perc.time.high)
+
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Percent of Time PTT Values were In-Range")
+
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = "Percent of PTT Values (Medians)")
 ```
 
-### Primary and Secondary Endpoints
+### Primary Endpoints
 ```{r endpoints}
-x <- result_table("table", analyze.coags, group = NULL)
-pander(x)
+df <- analyze.coags %>%
+    select(`INR at Baseline` = inr.before,
+           `PTT at Baseline` = ptt.before,
+           `INR at First Therapeutic PTT` = inr.txptt,
+           `First Therapeutic PTT` = ptt.tx,
+           `Time to First Therapeutic PTT` = inr.txptt.time,
+           `Change in INR at First Therapeutic PTT` = inr.change)
+
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Primary Endpoints and Related Data")
+
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = "Primary Endpoints (Medians)")
+
+# summary(tbl, digits = 2)
 ```
 
-## Figures
+### Secondary Endpoints
+```{r}
+df <- analyze.coags %>%
+    select(`INR at 12-Hours` = inr.12hr,
+           `PTT at 12-Hours` = ptt.12hr,
+           `Change in INR at 12-Hours` = inr.change.12hr,
+           `INR at 24-Hours` = inr.24hr,
+           `PTT at 24-Hours` = ptt.24hr,
+           `Change in INR at 24-Hours` = inr.change.24hr)
+
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "INR Change at 12- and 24-Hours")
+
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = "INR Change at 12- and 24-Hours (Medians)")
+```
+
+```{r}
+df <- analyze.coags %>%
+    select(`INR Prior to Cessation` = inr.before.stop,
+           `PTT Prior to Cessation` = ptt.before.stop,
+           `INR After Cessation` = inr.after.stop,
+           `PTT After Cessation` = ptt.after.stop,
+           `Change in INR at Cessation` = inr.change.stop)
+
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "INR Change at Bivalirudin Cessation")
+
+ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = "INR Change at Bivalirudin Cessation (Medians)")
+```
+
+### Safety Endpoints
+```{r events}
+vars <- names(analyze.bleed[-1])
+fvars <- c("major.bleed", "minor.bleed", "new.thrombosis")
+
+tbl <- CreateTableOne(vars = vars, data = analyze.bleed, factorVars = fvars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Bleeding and Thrombosis")
+```
+
+```{r prbc}
+vars <- names(analyze.prbc[-1])
+
+tbl <- CreateTableOne(vars = vars, data = analyze.prbc, factorVars = vars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Blood Product Administration")
+```
+
+```{r reversal}
+vars <- names(analyze.reversal[-1])
+
+tbl <- CreateTableOne(vars = vars, data = analyze.reversal, factorVars = vars)
+ptbl <- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = "Reversal Agent Administration")
+```
+
+## Exploratory Figures
 
 ```{r plot_params}
 diff.units <- "days"
@@ -620,7 +745,7 @@ tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = "Values for Change in INR at time of Therapeutic PTT")
-summary(tbl)
+# summary(tbl)
 ```
 
 ```{r}

@@ -236,12 +236,19 @@ div.tocify {
 
 <div id="results" class="section level2">
 <h2>Results</h2>
-<div id="demographics" class="section level3">
-<h3>Demographics</h3>
-<pre class="r"><code>vars &lt;- c(&quot;age&quot;, &quot;sex&quot;, &quot;race&quot;, &quot;los&quot;, &quot;disposition&quot;)
-fvars &lt;- c(&quot;sex&quot;, &quot;race&quot;, &quot;disposition&quot;)
+<div id="baseline-characteristics" class="section level3">
+<h3>Baseline Characteristics</h3>
+<pre class="r"><code>df &lt;- analyze.demographics %&gt;%
+    select(Age = age,
+           Sex = sex,
+           Race = race,
+           `Length of Stay` = los,
+           `Discarge Disposition` = disposition)
 
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.demographics, factorVars = fvars)
+vars &lt;- names(df)
+fvars &lt;- names(df)[c(2, 3, 5)]
+
+tbl &lt;- CreateTableOne(vars = vars, data = df, factorVars = fvars)
 ptbl &lt;- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
@@ -259,15 +266,15 @@ knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
 <td align="left">34</td>
 </tr>
 <tr class="even">
-<td>age (mean (sd))</td>
+<td>Age (mean (sd))</td>
 <td align="left">61.03 (11.70)</td>
 </tr>
 <tr class="odd">
-<td>sex = Male (%)</td>
+<td>Sex = Male (%)</td>
 <td align="left">21 (61.8)</td>
 </tr>
 <tr class="even">
-<td>race (%)</td>
+<td>Race (%)</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
@@ -287,11 +294,11 @@ knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
 <td align="left">16 (47.1)</td>
 </tr>
 <tr class="odd">
-<td>los (mean (sd))</td>
+<td>Length of Stay (mean (sd))</td>
 <td align="left">30.80 (21.41)</td>
 </tr>
 <tr class="even">
-<td>disposition (%)</td>
+<td>Discarge Disposition (%)</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
@@ -320,11 +327,11 @@ knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = c(&quot;age&quot;, &quot;los&quot;))
+<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = names(df)[c(1, 4)])
 
-knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
+knitr::kable(ptbl, caption = &quot;Demographics (Medians)&quot;)</code></pre>
 <table>
-<caption>Demographics</caption>
+<caption>Demographics (Medians)</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -337,1094 +344,1054 @@ knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
 <td align="left">34</td>
 </tr>
 <tr class="even">
-<td>age (median [IQR])</td>
+<td>Age (median [IQR])</td>
 <td align="left">61.00 [54.25, 69.00]</td>
 </tr>
 <tr class="odd">
-<td>los (median [IQR])</td>
+<td>Length of Stay (median [IQR])</td>
 <td align="left">26.81 [17.70, 33.56]</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="comorbidities" class="section level3">
-<h3>Comorbidities</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.diagnosis, group = NULL)</code></pre>
-<pre><code>## NULL
-## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:60%;">
-<colgroup>
-<col width="45%"></col>
-<col width="13%"></col>
-</colgroup>
+<pre class="r"><code>vars &lt;- names(analyze.diagnosis[-1])
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.diagnosis, factorVars = vars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Comorbidities&quot;)</code></pre>
+<table>
+<caption>Comorbidities</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>anemia = TRUE (%)</strong></td>
-<td align="center">12 ( 35.3)</td>
+<td>anemia = TRUE (%)</td>
+<td align="left">12 ( 35.3)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>anticoag.chronic = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
+<td>anticoag.chronic = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>aortic.plaque = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>aortic.plaque = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>arf = TRUE (%)</strong></td>
-<td align="center">20 ( 58.8)</td>
+<td>arf = TRUE (%)</td>
+<td align="left">20 ( 58.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>atrial.fib = TRUE (%)</strong></td>
-<td align="center">14 ( 41.2)</td>
+<td>atrial.fib = TRUE (%)</td>
+<td align="left">14 ( 41.2)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>atrial.flutter = TRUE (%)</strong></td>
-<td align="center">5 ( 14.7)</td>
+<td>atrial.flutter = TRUE (%)</td>
+<td align="left">5 ( 14.7)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>avm = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>avm = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>bleed.cns = TRUE (%)</strong></td>
-<td align="center">3 ( 8.8)</td>
+<td>bleed.cns = TRUE (%)</td>
+<td align="left">3 ( 8.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>bleed.gi = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
+<td>bleed.gi = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>bleed.major = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
+<td>bleed.major = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>bleed.minor = TRUE (%)</strong></td>
-<td align="center">2 ( 5.9)</td>
+<td>bleed.minor = TRUE (%)</td>
+<td align="left">2 ( 5.9)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>cancer = TRUE (%)</strong></td>
-<td align="center">2 ( 5.9)</td>
+<td>cancer = TRUE (%)</td>
+<td align="left">2 ( 5.9)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>ckd = TRUE (%)</strong></td>
-<td align="center">7 ( 20.6)</td>
+<td>ckd = TRUE (%)</td>
+<td align="left">7 ( 20.6)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>copd = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
+<td>copd = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>dvt.acute = TRUE (%)</strong></td>
-<td align="center">13 ( 38.2)</td>
+<td>dvt.acute = TRUE (%)</td>
+<td align="left">13 ( 38.2)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>dvt.chronic = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
+<td>dvt.chronic = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>dvt.ob = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>dvt.ob = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>esoph.var = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
+<td>esoph.var = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>esrd = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
+<td>esrd = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>gi.ulcer = TRUE (%)</strong></td>
-<td align="center">2 ( 5.9)</td>
+<td>gi.ulcer = TRUE (%)</td>
+<td align="left">2 ( 5.9)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>hemophil = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>hemophil = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>hepatitis = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>hepatitis = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>hit = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
+<td>hit = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>hypercoag = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>hypercoag = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>lv.thrombus = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>lv.thrombus = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>neph.synd = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>neph.synd = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>parox.noct.hgb = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>parox.noct.hgb = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>pe.acute = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
+<td>pe.acute = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>pe.chronic = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>pe.chronic = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>pe.ob = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>pe.ob = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>phlebitis = TRUE (%)</strong></td>
-<td align="center">17 ( 50.0)</td>
+<td>phlebitis = TRUE (%)</td>
+<td align="left">17 ( 50.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>plasmin.def = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>plasmin.def = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>pvd = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
+<td>pvd = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>short.gut = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>short.gut = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>sickle.cell = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>sickle.cell = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>stroke = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
+<td>stroke = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>tia = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>tia = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>ulcer.colitis = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>ulcer.colitis = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>vars &lt;- names(analyze.indications[-1])
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.indications, factorVars = vars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Anticoagulation Indications&quot;)</code></pre>
+<table>
+<caption>Anticoagulation Indications</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>afib = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
+</tr>
+<tr class="odd">
+<td>dvt = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
+</tr>
+<tr class="even">
+<td>pe = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
+</tr>
+<tr class="odd">
+<td>valve = TRUE (%)</td>
+<td align="left">3 ( 8.8)</td>
+</tr>
+<tr class="even">
+<td>other = TRUE (%)</td>
+<td align="left">14 ( 41.2)</td>
+</tr>
+<tr class="odd">
+<td>vte = TRUE (%)</td>
+<td align="left">12 ( 35.3)</td>
+</tr>
+<tr class="even">
+<td>multiple = TRUE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>vars &lt;- names(analyze.labs[-1])
+fvars &lt;- &quot;elisa&quot;
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.labs, factorVars = fvars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Baseline Labs&quot;)</code></pre>
+<table>
+<caption>Baseline Labs</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>scr (mean (sd))</td>
+<td align="left">1.83 (1.87)</td>
+</tr>
+<tr class="odd">
+<td>ast (mean (sd))</td>
+<td align="left">71.00 (69.32)</td>
+</tr>
+<tr class="even">
+<td>alt (mean (sd))</td>
+<td align="left">76.37 (109.81)</td>
+</tr>
+<tr class="odd">
+<td>t.bili (mean (sd))</td>
+<td align="left">1.50 (2.37)</td>
+</tr>
+<tr class="even">
+<td>crcl (mean (sd))</td>
+<td align="left">52.60 (27.47)</td>
+</tr>
+<tr class="odd">
+<td>elisa = Positive (%)</td>
+<td align="left">19 (70.4)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars[-6])
+
+knitr::kable(ptbl, caption = &quot;Baseline Labs (Medians)&quot;)</code></pre>
+<table>
+<caption>Baseline Labs (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>scr (median [IQR])</td>
+<td align="left">1.30 [1.00, 1.97]</td>
+</tr>
+<tr class="odd">
+<td>ast (median [IQR])</td>
+<td align="left">55.00 [30.25, 76.75]</td>
+</tr>
+<tr class="even">
+<td>alt (median [IQR])</td>
+<td align="left">51.00 [26.50, 62.75]</td>
+</tr>
+<tr class="odd">
+<td>t.bili (median [IQR])</td>
+<td align="left">0.85 [0.42, 1.45]</td>
+</tr>
+<tr class="even">
+<td>crcl (median [IQR])</td>
+<td align="left">58.91 [27.55, 71.59]</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>vars &lt;- names(analyze.meds[-1])
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.meds, factorVars = vars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Medications Administered During Hospitalization&quot;)</code></pre>
+<table>
+<caption>Medications Administered During Hospitalization</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>amiodarone = TRUE (%)</td>
+<td align="left">18 ( 52.9)</td>
+</tr>
+<tr class="odd">
+<td>antiplatelet = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
+</tr>
+<tr class="even">
+<td>aspirin = TRUE (%)</td>
+<td align="left">28 ( 82.4)</td>
+</tr>
+<tr class="odd">
+<td>azole.antifungals = TRUE (%)</td>
+<td align="left">12 ( 35.3)</td>
+</tr>
+<tr class="even">
+<td>cimetidine = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+<tr class="odd">
+<td>dir.thromb.inhib = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+<tr class="even">
+<td>enoxaparin = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
+</tr>
+<tr class="odd">
+<td>estrogens = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+<tr class="even">
+<td>fact.xa.inhib = TRUE (%)</td>
+<td align="left">2 ( 5.9)</td>
+</tr>
+<tr class="odd">
+<td>fluoroquin = TRUE (%)</td>
+<td align="left">10 ( 29.4)</td>
+</tr>
+<tr class="even">
+<td>heparin = TRUE (%)</td>
+<td align="left">26 ( 76.5)</td>
+</tr>
+<tr class="odd">
+<td>macrolide = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
+</tr>
+<tr class="even">
+<td>metronidazole = TRUE (%)</td>
+<td align="left">8 ( 23.5)</td>
+</tr>
+<tr class="odd">
+<td>nsaid = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
+</tr>
+<tr class="even">
+<td>progestins = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
+</tr>
+<tr class="odd">
+<td>quinidine = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+<tr class="even">
+<td>reversal = TRUE (%)</td>
+<td align="left">7 ( 20.6)</td>
+</tr>
+<tr class="odd">
+<td>simvastatin = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
+</tr>
+<tr class="even">
+<td>smx = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
+</tr>
+<tr class="odd">
+<td>smx.tmp = TRUE (%)</td>
+<td align="left">3 ( 8.8)</td>
+</tr>
+<tr class="even">
+<td>thrombolytic = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
+</tr>
+<tr class="odd">
+<td>thyroid = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
+</tr>
+<tr class="even">
+<td>vit.e = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="anticoagulation-indications" class="section level3">
-<h3>Anticoagulation Indications</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.indications, group = NULL)</code></pre>
-<pre><code>## NULL
-## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:50%;">
-<colgroup>
-<col width="36%"></col>
-<col width="13%"></col>
-</colgroup>
+<div id="bivalirudin-data" class="section level3">
+<h3>Bivalirudin Data</h3>
+<pre class="r"><code>df &lt;- inner_join(analyze.bival, analyze.demographics[c(&quot;pie.id&quot;, &quot;bival.prior.warf&quot;, &quot;overlap&quot;, &quot;proc.48hrs&quot;)], by = &quot;pie.id&quot;) %&gt;%
+    select(`Starting Rate` = first.rate,
+           `Final Rate` = last.rate,
+           `Minimum Rate` = min.rate,
+           `Maximum Rate` = max.rate,
+           `Drip Rate AUC` = auc.rate,
+           `Drip Duration` = bival.duration,
+           `Time-Weighted Average Rate` = time.wt.rate,
+           `Drip Duration Prior to Warfarin` = bival.prior.warf,
+           `Days Overlap with Warfarin` = overlap,
+           `Procedure Prior to Bivalirudin` = proc.48hrs)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Bivalirudin Infusion Information&quot;)</code></pre>
+<table>
+<caption>Bivalirudin Infusion Information</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>afib = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
+<td>Starting Rate (mean (sd))</td>
+<td align="left">0.09 (0.05)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>dvt = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
+<td>Final Rate (mean (sd))</td>
+<td align="left">0.08 (0.16)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>pe = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
+<td>Minimum Rate (mean (sd))</td>
+<td align="left">0.02 (0.04)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>valve = TRUE (%)</strong></td>
-<td align="center">3 ( 8.8)</td>
+<td>Maximum Rate (mean (sd))</td>
+<td align="left">2.24 (9.08)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>other = TRUE (%)</strong></td>
-<td align="center">14 ( 41.2)</td>
+<td>Drip Rate AUC (mean (sd))</td>
+<td align="left">40.76 (65.17)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>vte = TRUE (%)</strong></td>
-<td align="center">12 ( 35.3)</td>
+<td>Drip Duration (mean (sd))</td>
+<td align="left">12.58 (11.74)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>multiple = TRUE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>Time-Weighted Average Rate (mean (sd))</td>
+<td align="left">0.16 (0.35)</td>
+</tr>
+<tr class="odd">
+<td>Drip Duration Prior to Warfarin (mean (sd))</td>
+<td align="left">6.09 (10.76)</td>
+</tr>
+<tr class="even">
+<td>Days Overlap with Warfarin (mean (sd))</td>
+<td align="left">6.49 (5.27)</td>
+</tr>
+<tr class="odd">
+<td>Procedure Prior to Bivalirudin = TRUE (%)</td>
+<td align="left">16 (47.1)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = &quot;Bivalirudin Infusion (Medians)&quot;)</code></pre>
+<table>
+<caption>Bivalirudin Infusion (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>Starting Rate (median [IQR])</td>
+<td align="left">0.06 [0.05, 0.15]</td>
+</tr>
+<tr class="odd">
+<td>Final Rate (median [IQR])</td>
+<td align="left">0.03 [0.01, 0.10]</td>
+</tr>
+<tr class="even">
+<td>Minimum Rate (median [IQR])</td>
+<td align="left">0.00 [0.00, 0.04]</td>
+</tr>
+<tr class="odd">
+<td>Maximum Rate (median [IQR])</td>
+<td align="left">0.15 [0.09, 0.28]</td>
+</tr>
+<tr class="even">
+<td>Drip Rate AUC (median [IQR])</td>
+<td align="left">19.70 [9.74, 35.15]</td>
+</tr>
+<tr class="odd">
+<td>Drip Duration (median [IQR])</td>
+<td align="left">8.93 [6.72, 11.77]</td>
+</tr>
+<tr class="even">
+<td>Time-Weighted Average Rate (median [IQR])</td>
+<td align="left">0.08 [0.04, 0.15]</td>
+</tr>
+<tr class="odd">
+<td>Drip Duration Prior to Warfarin (median [IQR])</td>
+<td align="left">3.20 [1.78, 5.19]</td>
+</tr>
+<tr class="even">
+<td>Days Overlap with Warfarin (median [IQR])</td>
+<td align="left">5.18 [3.73, 7.51]</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>df &lt;- analyze.ptt.perc %&gt;%
+    select(`Within Goal PTT Range` = perc.time.goal,
+           `Below Goal PTT Range` = perc.time.low,
+           `Above Goal PTT Range` = perc.time.high)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Percent of Time PTT Values were In-Range&quot;)</code></pre>
+<table>
+<caption>Percent of Time PTT Values were In-Range</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>Within Goal PTT Range (mean (sd))</td>
+<td align="left">0.72 (0.13)</td>
+</tr>
+<tr class="odd">
+<td>Below Goal PTT Range (mean (sd))</td>
+<td align="left">0.08 (0.09)</td>
+</tr>
+<tr class="even">
+<td>Above Goal PTT Range (mean (sd))</td>
+<td align="left">0.10 (0.06)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = &quot;Percent of PTT Values (Medians)&quot;)</code></pre>
+<table>
+<caption>Percent of PTT Values (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>Within Goal PTT Range (median [IQR])</td>
+<td align="left">0.72 [0.63, 0.79]</td>
+</tr>
+<tr class="odd">
+<td>Below Goal PTT Range (median [IQR])</td>
+<td align="left">0.05 [0.00, 0.15]</td>
+</tr>
+<tr class="even">
+<td>Above Goal PTT Range (median [IQR])</td>
+<td align="left">0.10 [0.05, 0.15]</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="bleeding-and-thrombosis" class="section level3">
-<h3>Bleeding and Thrombosis</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.bleed, group = NULL)
-pander(x)</code></pre>
-<table style="width:78%;">
-<colgroup>
-<col width="45%"></col>
-<col width="31%"></col>
-</colgroup>
+<div id="primary-endpoints" class="section level3">
+<h3>Primary Endpoints</h3>
+<pre class="r"><code>df &lt;- analyze.coags %&gt;%
+    select(`INR at Baseline` = inr.before,
+           `PTT at Baseline` = ptt.before,
+           `INR at First Therapeutic PTT` = inr.txptt,
+           `First Therapeutic PTT` = ptt.tx,
+           `Time to First Therapeutic PTT` = inr.txptt.time,
+           `Change in INR at First Therapeutic PTT` = inr.change)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Primary Endpoints and Related Data&quot;)</code></pre>
+<table>
+<caption>Primary Endpoints and Related Data</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>major.bleed = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
+<td>INR at Baseline (mean (sd))</td>
+<td align="left">1.25 (0.15)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>minor.bleed = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
+<td>PTT at Baseline (mean (sd))</td>
+<td align="left">50.36 (22.30)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>new.thrombosis = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
+<td>INR at First Therapeutic PTT (mean (sd))</td>
+<td align="left">1.72 (0.41)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>First Therapeutic PTT (mean (sd))</td>
+<td align="left">65.88 (9.39)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>hgb.drop (mean (sd))</strong></td>
-<td align="center">-3.55 (1.06)</td>
+<td>Time to First Therapeutic PTT (mean (sd))</td>
+<td align="left">10.93 (8.97)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>bival.drop.diff (mean (sd))</strong></td>
-<td align="center">72.38 (19.80)</td>
+<td>Change in INR at First Therapeutic PTT (mean (sd))</td>
+<td align="left">0.42 (0.26)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = &quot;Primary Endpoints (Medians)&quot;)</code></pre>
+<table>
+<caption>Primary Endpoints (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>warf.drop.diff (mean (sd))</strong></td>
-<td align="center">-63.22 (0.08)</td>
+<td>INR at Baseline (median [IQR])</td>
+<td align="left">1.22 [1.13, 1.36]</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>PTT at Baseline (median [IQR])</td>
+<td align="left">39.50 [31.82, 72.60]</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>hgb.drop (median [IQR])</strong></td>
-<td align="center">-3.55 [-3.92, -3.18]</td>
+<td>INR at First Therapeutic PTT (median [IQR])</td>
+<td align="left">1.61 [1.47, 1.86]</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>bival.drop.diff (median [IQR])</strong></td>
-<td align="center">72.38 [65.38, 79.38]</td>
+<td>First Therapeutic PTT (median [IQR])</td>
+<td align="left">68.40 [58.30, 73.20]</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>warf.drop.diff (median [IQR])</strong></td>
-<td align="center">-63.22 [-63.25, -63.20]</td>
+<td>Time to First Therapeutic PTT (median [IQR])</td>
+<td align="left">8.43 [4.63, 14.17]</td>
+</tr>
+<tr class="odd">
+<td>Change in INR at First Therapeutic PTT (median [IQR])</td>
+<td align="left">0.37 [0.28, 0.48]</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># summary(tbl, digits = 2)</code></pre>
+</div>
+<div id="secondary-endpoints" class="section level3">
+<h3>Secondary Endpoints</h3>
+<pre class="r"><code>df &lt;- analyze.coags %&gt;%
+    select(`INR at 12-Hours` = inr.12hr,
+           `PTT at 12-Hours` = ptt.12hr,
+           `Change in INR at 12-Hours` = inr.change.12hr,
+           `INR at 24-Hours` = inr.24hr,
+           `PTT at 24-Hours` = ptt.24hr,
+           `Change in INR at 24-Hours` = inr.change.24hr)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;INR Change at 12- and 24-Hours&quot;)</code></pre>
+<table>
+<caption>INR Change at 12- and 24-Hours</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>INR at 12-Hours (mean (sd))</td>
+<td align="left">1.78 (0.32)</td>
+</tr>
+<tr class="odd">
+<td>PTT at 12-Hours (mean (sd))</td>
+<td align="left">71.72 (20.18)</td>
+</tr>
+<tr class="even">
+<td>Change in INR at 12-Hours (mean (sd))</td>
+<td align="left">0.50 (0.23)</td>
+</tr>
+<tr class="odd">
+<td>INR at 24-Hours (mean (sd))</td>
+<td align="left">2.04 (0.82)</td>
+</tr>
+<tr class="even">
+<td>PTT at 24-Hours (mean (sd))</td>
+<td align="left">64.05 (19.54)</td>
+</tr>
+<tr class="odd">
+<td>Change in INR at 24-Hours (mean (sd))</td>
+<td align="left">0.69 (0.74)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = &quot;INR Change at 12- and 24-Hours (Medians)&quot;)</code></pre>
+<table>
+<caption>INR Change at 12- and 24-Hours (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>INR at 12-Hours (median [IQR])</td>
+<td align="left">1.72 [1.51, 1.94]</td>
+</tr>
+<tr class="odd">
+<td>PTT at 12-Hours (median [IQR])</td>
+<td align="left">70.60 [61.35, 78.35]</td>
+</tr>
+<tr class="even">
+<td>Change in INR at 12-Hours (median [IQR])</td>
+<td align="left">0.55 [0.32, 0.66]</td>
+</tr>
+<tr class="odd">
+<td>INR at 24-Hours (median [IQR])</td>
+<td align="left">1.96 [1.60, 2.03]</td>
+</tr>
+<tr class="even">
+<td>PTT at 24-Hours (median [IQR])</td>
+<td align="left">61.00 [50.90, 79.97]</td>
+</tr>
+<tr class="odd">
+<td>Change in INR at 24-Hours (median [IQR])</td>
+<td align="left">0.50 [0.25, 0.52]</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>df &lt;- analyze.coags %&gt;%
+    select(`INR Prior to Cessation` = inr.before.stop,
+           `PTT Prior to Cessation` = ptt.before.stop,
+           `INR After Cessation` = inr.after.stop,
+           `PTT After Cessation` = ptt.after.stop,
+           `Change in INR at Cessation` = inr.change.stop)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;INR Change at Bivalirudin Cessation&quot;)</code></pre>
+<table>
+<caption>INR Change at Bivalirudin Cessation</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>INR Prior to Cessation (mean (sd))</td>
+<td align="left">2.83 (0.79)</td>
+</tr>
+<tr class="odd">
+<td>PTT Prior to Cessation (mean (sd))</td>
+<td align="left">73.42 (11.73)</td>
+</tr>
+<tr class="even">
+<td>INR After Cessation (mean (sd))</td>
+<td align="left">2.59 (0.67)</td>
+</tr>
+<tr class="odd">
+<td>PTT After Cessation (mean (sd))</td>
+<td align="left">49.79 (16.01)</td>
+</tr>
+<tr class="even">
+<td>Change in INR at Cessation (mean (sd))</td>
+<td align="left">-0.52 (0.40)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ptbl &lt;- print(tbl, printToggle = FALSE, nonnormal = vars)
+
+knitr::kable(ptbl, caption = &quot;INR Change at Bivalirudin Cessation (Medians)&quot;)</code></pre>
+<table>
+<caption>INR Change at Bivalirudin Cessation (Medians)</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="left">34</td>
+</tr>
+<tr class="even">
+<td>INR Prior to Cessation (median [IQR])</td>
+<td align="left">2.83 [2.40, 3.33]</td>
+</tr>
+<tr class="odd">
+<td>PTT Prior to Cessation (median [IQR])</td>
+<td align="left">74.30 [65.62, 84.02]</td>
+</tr>
+<tr class="even">
+<td>INR After Cessation (median [IQR])</td>
+<td align="left">2.46 [2.16, 2.87]</td>
+</tr>
+<tr class="odd">
+<td>PTT After Cessation (median [IQR])</td>
+<td align="left">48.40 [39.55, 53.00]</td>
+</tr>
+<tr class="even">
+<td>Change in INR at Cessation (median [IQR])</td>
+<td align="left">-0.48 [-0.83, -0.12]</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="baseline-labs" class="section level3">
-<h3>Baseline Labs</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.labs, group = NULL)
-pander(x)</code></pre>
-<table style="width:67%;">
-<colgroup>
-<col width="38%"></col>
-<col width="27%"></col>
-</colgroup>
+<div id="safety-endpoints" class="section level3">
+<h3>Safety Endpoints</h3>
+<pre class="r"><code>vars &lt;- names(analyze.bleed[-1])
+fvars &lt;- c(&quot;major.bleed&quot;, &quot;minor.bleed&quot;, &quot;new.thrombosis&quot;)
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.bleed, factorVars = fvars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Bleeding and Thrombosis&quot;)</code></pre>
+<table>
+<caption>Bleeding and Thrombosis</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>elisa = Positive (%)</strong></td>
-<td align="center">19 (70.4)</td>
+<td>major.bleed = TRUE (%)</td>
+<td align="left">4 ( 11.8)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>minor.bleed = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>scr (mean (sd))</strong></td>
-<td align="center">1.83 (1.87)</td>
+<td>hgb.drop (mean (sd))</td>
+<td align="left">-3.55 (1.06)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>ast (mean (sd))</strong></td>
-<td align="center">71.00 (69.32)</td>
+<td>bival.drop.diff (mean (sd))</td>
+<td align="left">72.38 (19.80)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>alt (mean (sd))</strong></td>
-<td align="center">76.37 (109.81)</td>
+<td>warf.drop.diff (mean (sd))</td>
+<td align="left">-63.22 (0.08)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>t.bili (mean (sd))</strong></td>
-<td align="center">1.50 (2.37)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>crcl (mean (sd))</strong></td>
-<td align="center">52.60 (27.47)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>scr (median [IQR])</strong></td>
-<td align="center">1.30 [1.00, 1.97]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ast (median [IQR])</strong></td>
-<td align="center">55.00 [30.25, 76.75]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>alt (median [IQR])</strong></td>
-<td align="center">51.00 [26.50, 62.75]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>t.bili (median [IQR])</strong></td>
-<td align="center">0.85 [0.42, 1.45]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>crcl (median [IQR])</strong></td>
-<td align="center">58.91 [27.55, 71.59]</td>
+<td>new.thrombosis = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="percent-ptt-values" class="section level3">
-<h3>Percent PTT Values</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.ptt.perc, group = NULL)</code></pre>
-<pre><code>## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:69%;">
-<colgroup>
-<col width="45%"></col>
-<col width="23%"></col>
-</colgroup>
+<pre class="r"><code>vars &lt;- names(analyze.prbc[-1])
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.prbc, factorVars = vars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Blood Product Administration&quot;)</code></pre>
+<table>
+<caption>Blood Product Administration</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>perc.time.goal (mean (sd))</strong></td>
-<td align="center">0.72 (0.13)</td>
+<td>prbc = TRUE (%)</td>
+<td align="left">6 ( 17.6)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>perc.time.low (mean (sd))</strong></td>
-<td align="center">0.08 (0.09)</td>
+<td>ffp = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>perc.time.high (mean (sd))</strong></td>
-<td align="center">0.10 (0.06)</td>
+<td>platelet = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>perc.time.goal (median [IQR])</strong></td>
-<td align="center">0.72 [0.63, 0.79]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>perc.time.low (median [IQR])</strong></td>
-<td align="center">0.05 [0.00, 0.15]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>perc.time.high (median [IQR])</strong></td>
-<td align="center">0.10 [0.05, 0.15]</td>
+<td>cryo = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="bivalirudin-infusion" class="section level3">
-<h3>Bivalirudin Infusion</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.bival, group = NULL)</code></pre>
-<pre><code>## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:72%;">
-<colgroup>
-<col width="45%"></col>
-<col width="26%"></col>
-</colgroup>
+<pre class="r"><code>vars &lt;- names(analyze.reversal[-1])
+
+tbl &lt;- CreateTableOne(vars = vars, data = analyze.reversal, factorVars = vars)
+ptbl &lt;- print(tbl, printToggle = FALSE)
+
+knitr::kable(ptbl, caption = &quot;Reversal Agent Administration&quot;)</code></pre>
+<table>
+<caption>Reversal Agent Administration</caption>
 <thead>
 <tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
+<th></th>
+<th align="left">Overall</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
+<td>n</td>
+<td align="left">34</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>first.rate (mean (sd))</strong></td>
-<td align="center">0.09 (0.05)</td>
+<td>coagulation factor viia = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>last.rate (mean (sd))</strong></td>
-<td align="center">0.08 (0.16)</td>
+<td>prothrombin complex = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>min.rate (mean (sd))</strong></td>
-<td align="center">0.02 (0.04)</td>
+<td>aminocaproic acid = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>max.rate (mean (sd))</strong></td>
-<td align="center">2.24 (9.08)</td>
+<td>tranexamic acid = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>auc.rate (mean (sd))</strong></td>
-<td align="center">40.76 (65.17)</td>
+<td>fibrinogen = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong>bival.duration (mean (sd))</strong></td>
-<td align="center">12.58 (11.74)</td>
+<td>thrombin topical = FALSE (%)</td>
+<td align="left">34 (100.0)</td>
 </tr>
 <tr class="even">
-<td align="center"><strong>time.wt.rate (mean (sd))</strong></td>
-<td align="center">0.16 (0.35)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>first.rate (median [IQR])</strong></td>
-<td align="center">0.06 [0.05, 0.15]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>last.rate (median [IQR])</strong></td>
-<td align="center">0.03 [0.01, 0.10]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>min.rate (median [IQR])</strong></td>
-<td align="center">0.00 [0.00, 0.04]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>max.rate (median [IQR])</strong></td>
-<td align="center">0.15 [0.09, 0.28]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>auc.rate (median [IQR])</strong></td>
-<td align="center">19.70 [9.74, 35.15]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>bival.duration (median [IQR])</strong></td>
-<td align="center">8.93 [6.72, 11.77]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>time.wt.rate (median [IQR])</strong></td>
-<td align="center">0.08 [0.04, 0.15]</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="medications-during-hospitalization" class="section level3">
-<h3>Medications During Hospitalization</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.meds, group = NULL)</code></pre>
-<pre><code>## NULL
-## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:57%;">
-<colgroup>
-<col width="43%"></col>
-<col width="13%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>amiodarone = TRUE (%)</strong></td>
-<td align="center">18 ( 52.9)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>antiplatelet = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>aspirin = TRUE (%)</strong></td>
-<td align="center">28 ( 82.4)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>azole.antifungals = TRUE (%)</strong></td>
-<td align="center">12 ( 35.3)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>cimetidine = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>dir.thromb.inhib = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>enoxaparin = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>estrogens = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>fact.xa.inhib = TRUE (%)</strong></td>
-<td align="center">2 ( 5.9)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>fluoroquin = TRUE (%)</strong></td>
-<td align="center">10 ( 29.4)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>heparin = TRUE (%)</strong></td>
-<td align="center">26 ( 76.5)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>macrolide = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>metronidazole = TRUE (%)</strong></td>
-<td align="center">8 ( 23.5)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>nsaid = TRUE (%)</strong></td>
-<td align="center">4 ( 11.8)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>progestins = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>quinidine = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>reversal = TRUE (%)</strong></td>
-<td align="center">7 ( 20.6)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>simvastatin = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>smx = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>smx.tmp = TRUE (%)</strong></td>
-<td align="center">3 ( 8.8)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>thrombolytic = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>thyroid = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>vit.e = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="blood-products" class="section level3">
-<h3>Blood Products</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.prbc, group = NULL)</code></pre>
-<pre><code>## NULL
-## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:50%;">
-<colgroup>
-<col width="36%"></col>
-<col width="13%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>prbc = TRUE (%)</strong></td>
-<td align="center">6 ( 17.6)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ffp = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>platelet = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>cryo = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="reversal-agents" class="section level3">
-<h3>Reversal Agents</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.reversal, group = NULL)</code></pre>
-<pre><code>## NULL
-## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:58%;">
-<colgroup>
-<col width="44%"></col>
-<col width="13%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>coagulation factor viia = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>prothrombin complex = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>aminocaproic acid = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>tranexamic acid = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>fibrinogen = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>thrombin topical = FALSE (%)</strong></td>
-<td align="center">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>phytonadione = TRUE (%)</strong></td>
-<td align="center">1 ( 2.9)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="primary-and-secondary-endpoints" class="section level3">
-<h3>Primary and Secondary Endpoints</h3>
-<pre class="r"><code>x &lt;- result_table(&quot;table&quot;, analyze.coags, group = NULL)</code></pre>
-<pre><code>## NULL</code></pre>
-<pre class="r"><code>pander(x)</code></pre>
-<table style="width:78%;">
-<colgroup>
-<col width="45%"></col>
-<col width="31%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center"> </th>
-<th align="center">Overall</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.before (mean (sd))</strong></td>
-<td align="center">1.25 (0.15)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.before (mean (sd))</strong></td>
-<td align="center">50.36 (22.30)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.txptt (mean (sd))</strong></td>
-<td align="center">1.72 (0.41)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.tx (mean (sd))</strong></td>
-<td align="center">65.88 (9.39)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.txptt.time (mean (sd))</strong></td>
-<td align="center">10.93 (8.97)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change (mean (sd))</strong></td>
-<td align="center">0.42 (0.26)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.prct (mean (sd))</strong></td>
-<td align="center">1.32 (0.18)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change (mean (sd))</strong></td>
-<td align="center">23.92 (16.69)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.prct (mean (sd))</strong></td>
-<td align="center">1.71 (0.48)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.4hr (mean (sd))</strong></td>
-<td align="center">1.64 (0.42)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.4hr (mean (sd))</strong></td>
-<td align="center">68.17 (16.35)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.4hr (mean (sd))</strong></td>
-<td align="center">0.38 (0.30)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.4hr.prct (mean (sd))</strong></td>
-<td align="center">1.30 (0.21)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.4hr (mean (sd))</strong></td>
-<td align="center">19.00 (27.85)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.4hr.prct (mean (sd))</strong></td>
-<td align="center">1.62 (0.68)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.6hr (mean (sd))</strong></td>
-<td align="center">1.88 (0.52)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.6hr (mean (sd))</strong></td>
-<td align="center">69.83 (17.20)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.6hr (mean (sd))</strong></td>
-<td align="center">0.51 (0.24)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.6hr.prct (mean (sd))</strong></td>
-<td align="center">1.37 (0.16)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.6hr (mean (sd))</strong></td>
-<td align="center">22.31 (26.01)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.6hr.prct (mean (sd))</strong></td>
-<td align="center">1.69 (0.69)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.12hr (mean (sd))</strong></td>
-<td align="center">1.78 (0.32)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.12hr (mean (sd))</strong></td>
-<td align="center">71.72 (20.18)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.12hr (mean (sd))</strong></td>
-<td align="center">0.50 (0.23)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.12hr.prct (mean (sd))</strong></td>
-<td align="center">1.39 (0.16)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.12hr (mean (sd))</strong></td>
-<td align="center">19.76 (39.34)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.12hr.prct (mean (sd))</strong></td>
-<td align="center">1.71 (0.88)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.24hr (mean (sd))</strong></td>
-<td align="center">2.04 (0.82)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.24hr (mean (sd))</strong></td>
-<td align="center">64.05 (19.54)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.24hr (mean (sd))</strong></td>
-<td align="center">0.69 (0.74)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.24hr.prct (mean (sd))</strong></td>
-<td align="center">1.50 (0.52)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.24hr (mean (sd))</strong></td>
-<td align="center">15.75 (28.20)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.24hr.prct (mean (sd))</strong></td>
-<td align="center">1.53 (0.82)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.before.stop (mean (sd))</strong></td>
-<td align="center">2.83 (0.79)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.before.stop (mean (sd))</strong></td>
-<td align="center">73.42 (11.73)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.after.stop (mean (sd))</strong></td>
-<td align="center">2.59 (0.67)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.after.stop (mean (sd))</strong></td>
-<td align="center">49.79 (16.01)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.stop (mean (sd))</strong></td>
-<td align="center">-0.52 (0.40)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.stop.prct (mean (sd))</strong></td>
-<td align="center">0.83 (0.12)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.stop (mean (sd))</strong></td>
-<td align="center">-30.08 (15.45)</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.stop.prct (mean (sd))</strong></td>
-<td align="center">0.62 (0.18)</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>n</strong></td>
-<td align="center">34</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.before (median [IQR])</strong></td>
-<td align="center">1.22 [1.13, 1.36]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.before (median [IQR])</strong></td>
-<td align="center">39.50 [31.82, 72.60]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.txptt (median [IQR])</strong></td>
-<td align="center">1.61 [1.47, 1.86]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.tx (median [IQR])</strong></td>
-<td align="center">68.40 [58.30, 73.20]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.txptt.time (median [IQR])</strong></td>
-<td align="center">8.43 [4.63, 14.17]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change (median [IQR])</strong></td>
-<td align="center">0.37 [0.28, 0.48]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.prct (median [IQR])</strong></td>
-<td align="center">1.26 [1.22, 1.39]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change (median [IQR])</strong></td>
-<td align="center">26.20 [17.20, 38.90]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.prct (median [IQR])</strong></td>
-<td align="center">1.78 [1.46, 2.01]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.4hr (median [IQR])</strong></td>
-<td align="center">1.51 [1.35, 1.79]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.4hr (median [IQR])</strong></td>
-<td align="center">67.60 [58.10, 77.65]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.4hr (median [IQR])</strong></td>
-<td align="center">0.32 [0.18, 0.50]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.4hr.prct (median [IQR])</strong></td>
-<td align="center">1.27 [1.16, 1.37]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.4hr (median [IQR])</strong></td>
-<td align="center">26.70 [-1.60, 39.20]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.4hr.prct (median [IQR])</strong></td>
-<td align="center">1.78 [0.98, 2.20]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.6hr (median [IQR])</strong></td>
-<td align="center">1.94 [1.34, 2.07]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.6hr (median [IQR])</strong></td>
-<td align="center">69.60 [58.10, 78.80]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.6hr (median [IQR])</strong></td>
-<td align="center">0.52 [0.34, 0.64]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.6hr.prct (median [IQR])</strong></td>
-<td align="center">1.34 [1.26, 1.48]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.6hr (median [IQR])</strong></td>
-<td align="center">32.30 [2.45, 39.20]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.6hr.prct (median [IQR])</strong></td>
-<td align="center">1.80 [1.06, 2.24]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.12hr (median [IQR])</strong></td>
-<td align="center">1.72 [1.51, 1.94]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.12hr (median [IQR])</strong></td>
-<td align="center">70.60 [61.35, 78.35]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.12hr (median [IQR])</strong></td>
-<td align="center">0.55 [0.32, 0.66]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.12hr.prct (median [IQR])</strong></td>
-<td align="center">1.40 [1.27, 1.51]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.12hr (median [IQR])</strong></td>
-<td align="center">26.70 [-10.30, 45.95]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.12hr.prct (median [IQR])</strong></td>
-<td align="center">1.78 [0.85, 2.45]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.24hr (median [IQR])</strong></td>
-<td align="center">1.96 [1.60, 2.03]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.24hr (median [IQR])</strong></td>
-<td align="center">61.00 [50.90, 79.97]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.24hr (median [IQR])</strong></td>
-<td align="center">0.50 [0.25, 0.52]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.24hr.prct (median [IQR])</strong></td>
-<td align="center">1.33 [1.25, 1.36]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.24hr (median [IQR])</strong></td>
-<td align="center">11.25 [-4.95, 29.33]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.24hr.prct (median [IQR])</strong></td>
-<td align="center">1.23 [0.89, 1.88]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.before.stop (median [IQR])</strong></td>
-<td align="center">2.83 [2.40, 3.33]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.before.stop (median [IQR])</strong></td>
-<td align="center">74.30 [65.62, 84.02]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.after.stop (median [IQR])</strong></td>
-<td align="center">2.46 [2.16, 2.87]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.after.stop (median [IQR])</strong></td>
-<td align="center">48.40 [39.55, 53.00]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>inr.change.stop (median [IQR])</strong></td>
-<td align="center">-0.48 [-0.83, -0.12]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>inr.change.stop.prct (median [IQR])</strong></td>
-<td align="center">0.82 [0.72, 0.96]</td>
-</tr>
-<tr class="odd">
-<td align="center"><strong>ptt.change.stop (median [IQR])</strong></td>
-<td align="center">-30.35 [-35.60, -26.10]</td>
-</tr>
-<tr class="even">
-<td align="center"><strong>ptt.change.stop.prct (median [IQR])</strong></td>
-<td align="center">0.58 [0.57, 0.66]</td>
+<td>phytonadione = TRUE (%)</td>
+<td align="left">1 ( 2.9)</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<div id="figures" class="section level2">
-<h2>Figures</h2>
+<div id="exploratory-figures" class="section level2">
+<h2>Exploratory Figures</h2>
 <pre class="r"><code>diff.units &lt;- &quot;days&quot;
 diff &lt;- if(diff.units == &quot;days&quot;) days else if (diff.units == &quot;hours&quot;) hours
 from = -2
