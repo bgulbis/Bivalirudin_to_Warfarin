@@ -19,3 +19,7 @@ man.sra <- read_data(manual.dir, "sra_review.csv", base = TRUE) %>%
            manual = as.logical(manual)) %>%
     inner_join(tmp.fins, by = "fin") %>%
     select(pie.id, everything(), -fin)
+
+data.sra <- man.sra %>%
+    group_by(pie.id) %>%
+    summarize(sra = sum(manual) > 1)
