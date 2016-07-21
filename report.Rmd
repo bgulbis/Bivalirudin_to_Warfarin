@@ -61,24 +61,41 @@ knitr::kable(ptbl, caption = "Comorbidities")
 ```
 
 ```{r indications}
-vars <- names(analyze.indications[-1])
+df <- analyze.indications %>%
+    select(`Atrial Fibrillation` = afib,
+           `Deep Vein Thrombosis` = dvt,
+           `Pulmonary Embolism` = pe,
+           `Valvular Heart Disease` = valve,
+           Other = other,
+           `Venous Thromboembolism` = vte,
+           `Multiple Indications` = multiple)
 
-tbl <- CreateTableOne(vars = vars, data = analyze.indications, factorVars = vars)
+vars <- names(df)
+
+tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = "Anticoagulation Indications")
 ```
 
 ```{r labs}
-vars <- names(analyze.labs[-1])
-fvars <- "elisa"
+df <- analyze.labs %>%
+    select(`Serum Creatinine` = scr,
+           `Creatinine Clearance` = crcl,
+           AST = ast,
+           ALT = alt,
+           `Total Bili` = t.bili, 
+           `Heparin ELISA` = elisa)
 
-tbl <- CreateTableOne(vars = vars, data = analyze.labs, factorVars = fvars)
+vars <- names(df)
+# fvars <- "elisa"
+
+tbl <- CreateTableOne(vars = vars, data = df)
 ptbl <- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = "Baseline Labs")
 
-ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars[-6])
+ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
 
 knitr::kable(ptbl, caption = "Baseline Labs (Medians)")
 ```
