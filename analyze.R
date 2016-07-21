@@ -273,8 +273,9 @@ analyze.demographics <- select(data.demograph, pie.id, age:disposition, bival.du
 analyze.diagnosis <- data.pmh
 
 analyze.indications <- select(data.warf, -indication) %>%
-    mutate(vte = ifelse(dvt == TRUE | pe == TRUE, TRUE, FALSE),
-           multiple = ifelse(sum(afib, dvt, pe, valve) > 1, TRUE, FALSE))
+    group_by(pie.id) %>%
+    mutate(vte = dvt == TRUE | pe == TRUE,
+           multiple = sum(afib, dvt, pe, valve, other) > 1)
 
 analyze.bleed <- select(data.bleed.bival, pie.id, major.bleed, minor.bleed, hgb.drop, bival.drop.diff, warf.drop.diff) %>%
     left_join(data.new.thrmb, by = "pie.id") %>%

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Andrea Fetea, Brian Gulbis, Andrea C. Hall" />
 
-<meta name="date" content="2016-07-20" />
+<meta name="date" content="2016-07-21" />
 
 <title>Evaluation of Bivalirudin’s Effect on the INR</title>
 
@@ -229,7 +229,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Evaluation of Bivalirudin’s Effect on the INR</h1>
 <h4 class="author"><em>Andrea Fetea, Brian Gulbis, Andrea C. Hall</em></h4>
-<h4 class="date"><em>July 20, 2016</em></h4>
+<h4 class="date"><em>July 21, 2016</em></h4>
 
 </div>
 
@@ -526,9 +526,22 @@ knitr::kable(ptbl, caption = &quot;Comorbidities&quot;)</code></pre>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>vars &lt;- names(analyze.indications[-1])
+<pre class="r"><code>df &lt;- analyze.indications %&gt;%
+    group_by(pie.id) %&gt;%
+    mutate(multiple = sum(afib, dvt, pe, other, valve) &gt; 1) %&gt;%
+    ungroup() %&gt;%
+    select(`Atrial Fibrillation` = afib,
+           `Deep Vein Thrombosis` = dvt,
+           `Pulmonary Embolism` = pe,
+           `Valvular Heart Disease` = valve,
+           Other = other,
+           `Venous Thromboembolism` = vte,
+           `Multiple Indications` = multiple)
 
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.indications, factorVars = vars)
+
+vars &lt;- names(df)
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
 ptbl &lt;- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = &quot;Anticoagulation Indications&quot;)</code></pre>
@@ -546,39 +559,47 @@ knitr::kable(ptbl, caption = &quot;Anticoagulation Indications&quot;)</code></pr
 <td align="left">34</td>
 </tr>
 <tr class="even">
-<td>afib = TRUE (%)</td>
-<td align="left">8 ( 23.5)</td>
+<td>Atrial Fibrillation = TRUE (%)</td>
+<td align="left">8 (23.5)</td>
 </tr>
 <tr class="odd">
-<td>dvt = TRUE (%)</td>
-<td align="left">6 ( 17.6)</td>
+<td>Deep Vein Thrombosis = TRUE (%)</td>
+<td align="left">6 (17.6)</td>
 </tr>
 <tr class="even">
-<td>pe = TRUE (%)</td>
-<td align="left">8 ( 23.5)</td>
+<td>Pulmonary Embolism = TRUE (%)</td>
+<td align="left">8 (23.5)</td>
 </tr>
 <tr class="odd">
-<td>valve = TRUE (%)</td>
+<td>Valvular Heart Disease = TRUE (%)</td>
 <td align="left">3 ( 8.8)</td>
 </tr>
 <tr class="even">
-<td>other = TRUE (%)</td>
-<td align="left">14 ( 41.2)</td>
+<td>Other = TRUE (%)</td>
+<td align="left">14 (41.2)</td>
 </tr>
 <tr class="odd">
-<td>vte = TRUE (%)</td>
-<td align="left">12 ( 35.3)</td>
+<td>Venous Thromboembolism = TRUE (%)</td>
+<td align="left">12 (35.3)</td>
 </tr>
 <tr class="even">
-<td>multiple = TRUE (%)</td>
-<td align="left">34 (100.0)</td>
+<td>Multiple Indications = TRUE (%)</td>
+<td align="left">5 (14.7)</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>vars &lt;- names(analyze.labs[-1])
-fvars &lt;- &quot;elisa&quot;
+<pre class="r"><code>df &lt;- analyze.labs %&gt;%
+    select(`Serum Creatinine` = scr,
+           `Creatinine Clearance` = crcl,
+           AST = ast,
+           ALT = alt,
+           `Total Bili` = t.bili, 
+           `Heparin ELISA` = elisa)
 
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.labs, factorVars = fvars)
+vars &lt;- names(df)
+# fvars &lt;- &quot;elisa&quot;
+
+tbl &lt;- CreateTableOne(vars = vars, data = df)
 ptbl &lt;- print(tbl, printToggle = FALSE)
 
 knitr::kable(ptbl, caption = &quot;Baseline Labs&quot;)</code></pre>
@@ -596,32 +617,32 @@ knitr::kable(ptbl, caption = &quot;Baseline Labs&quot;)</code></pre>
 <td align="left">34</td>
 </tr>
 <tr class="even">
-<td>scr (mean (sd))</td>
+<td>Serum Creatinine (mean (sd))</td>
 <td align="left">1.83 (1.87)</td>
 </tr>
 <tr class="odd">
-<td>ast (mean (sd))</td>
-<td align="left">71.00 (69.32)</td>
-</tr>
-<tr class="even">
-<td>alt (mean (sd))</td>
-<td align="left">76.37 (109.81)</td>
-</tr>
-<tr class="odd">
-<td>t.bili (mean (sd))</td>
-<td align="left">1.50 (2.37)</td>
-</tr>
-<tr class="even">
-<td>crcl (mean (sd))</td>
+<td>Creatinine Clearance (mean (sd))</td>
 <td align="left">52.60 (27.47)</td>
 </tr>
+<tr class="even">
+<td>AST (mean (sd))</td>
+<td align="left">71.00 (69.32)</td>
+</tr>
 <tr class="odd">
-<td>elisa = Positive (%)</td>
+<td>ALT (mean (sd))</td>
+<td align="left">76.37 (109.81)</td>
+</tr>
+<tr class="even">
+<td>Total Bili (mean (sd))</td>
+<td align="left">1.50 (2.37)</td>
+</tr>
+<tr class="odd">
+<td>Heparin ELISA = Positive (%)</td>
 <td align="left">19 (70.4)</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars[-6])
+<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
 
 knitr::kable(ptbl, caption = &quot;Baseline Labs (Medians)&quot;)</code></pre>
 <table>
@@ -638,24 +659,24 @@ knitr::kable(ptbl, caption = &quot;Baseline Labs (Medians)&quot;)</code></pre>
 <td align="left">34</td>
 </tr>
 <tr class="even">
-<td>scr (median [IQR])</td>
+<td>Serum Creatinine (median [IQR])</td>
 <td align="left">1.30 [1.00, 1.97]</td>
 </tr>
 <tr class="odd">
-<td>ast (median [IQR])</td>
+<td>Creatinine Clearance (median [IQR])</td>
+<td align="left">58.91 [27.55, 71.59]</td>
+</tr>
+<tr class="even">
+<td>AST (median [IQR])</td>
 <td align="left">55.00 [30.25, 76.75]</td>
 </tr>
-<tr class="even">
-<td>alt (median [IQR])</td>
+<tr class="odd">
+<td>ALT (median [IQR])</td>
 <td align="left">51.00 [26.50, 62.75]</td>
 </tr>
-<tr class="odd">
-<td>t.bili (median [IQR])</td>
-<td align="left">0.85 [0.42, 1.45]</td>
-</tr>
 <tr class="even">
-<td>crcl (median [IQR])</td>
-<td align="left">58.91 [27.55, 71.59]</td>
+<td>Total Bili (median [IQR])</td>
+<td align="left">0.85 [0.42, 1.45]</td>
 </tr>
 </tbody>
 </table>
