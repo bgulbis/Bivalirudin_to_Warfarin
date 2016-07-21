@@ -527,8 +527,8 @@ knitr::kable(ptbl, caption = &quot;Comorbidities&quot;)</code></pre>
 </tbody>
 </table>
 <pre class="r"><code>df &lt;- analyze.indications %&gt;%
-    group_by(pie.id) %&gt;%
-    mutate(multiple = sum(afib, dvt, pe, other, valve) &gt; 1) %&gt;%
+    # group_by(pie.id) %&gt;%
+    # mutate(multiple = sum(afib, dvt, pe, other, valve) &gt; 1) %&gt;%
     ungroup() %&gt;%
     select(`Atrial Fibrillation` = afib,
            `Deep Vein Thrombosis` = dvt,
@@ -537,7 +537,6 @@ knitr::kable(ptbl, caption = &quot;Comorbidities&quot;)</code></pre>
            Other = other,
            `Venous Thromboembolism` = vte,
            `Multiple Indications` = multiple)
-
 
 vars &lt;- names(df)
 
@@ -589,12 +588,17 @@ knitr::kable(ptbl, caption = &quot;Anticoagulation Indications&quot;)</code></pr
 </tbody>
 </table>
 <pre class="r"><code>df &lt;- analyze.labs %&gt;%
+    mutate(epsn = elisa == &quot;Positive&quot; &amp; sra == FALSE,
+           epsna = elisa == &quot;Positive&quot; &amp; is.na(sra)) %&gt;%
     select(`Serum Creatinine` = scr,
            `Creatinine Clearance` = crcl,
            AST = ast,
            ALT = alt,
            `Total Bili` = t.bili, 
-           `Heparin ELISA` = elisa)
+           `Heparin ELISA` = elisa,
+           `ELISA pos / SRA pos` = sra,
+           `ELISA pos / SRA neg` = epsn,
+           `ELISA pos / no SRA` = epsna)
 
 vars &lt;- names(df)
 # fvars &lt;- &quot;elisa&quot;
@@ -639,6 +643,18 @@ knitr::kable(ptbl, caption = &quot;Baseline Labs&quot;)</code></pre>
 <tr class="odd">
 <td>Heparin ELISA = Positive (%)</td>
 <td align="left">19 (70.4)</td>
+</tr>
+<tr class="even">
+<td>ELISA pos / SRA pos = TRUE (%)</td>
+<td align="left">2 (16.7)</td>
+</tr>
+<tr class="odd">
+<td>ELISA pos / SRA neg = TRUE (%)</td>
+<td align="left">9 (47.4)</td>
+</tr>
+<tr class="even">
+<td>ELISA pos / no SRA = TRUE (%)</td>
+<td align="left">8 (29.6)</td>
 </tr>
 </tbody>
 </table>
