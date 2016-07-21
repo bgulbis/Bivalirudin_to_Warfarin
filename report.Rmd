@@ -62,6 +62,9 @@ knitr::kable(ptbl, caption = "Comorbidities")
 
 ```{r indications}
 df <- analyze.indications %>%
+    group_by(pie.id) %>%
+    mutate(multiple = sum(afib, dvt, pe, other, valve) > 1) %>%
+    ungroup() %>%
     select(`Atrial Fibrillation` = afib,
            `Deep Vein Thrombosis` = dvt,
            `Pulmonary Embolism` = pe,
@@ -69,6 +72,7 @@ df <- analyze.indications %>%
            Other = other,
            `Venous Thromboembolism` = vte,
            `Multiple Indications` = multiple)
+
 
 vars <- names(df)
 
