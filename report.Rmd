@@ -62,8 +62,8 @@ knitr::kable(ptbl, caption = "Comorbidities")
 
 ```{r indications}
 df <- analyze.indications %>%
-    group_by(pie.id) %>%
-    mutate(multiple = sum(afib, dvt, pe, other, valve) > 1) %>%
+    # group_by(pie.id) %>%
+    # mutate(multiple = sum(afib, dvt, pe, other, valve) > 1) %>%
     ungroup() %>%
     select(`Atrial Fibrillation` = afib,
            `Deep Vein Thrombosis` = dvt,
@@ -72,7 +72,6 @@ df <- analyze.indications %>%
            Other = other,
            `Venous Thromboembolism` = vte,
            `Multiple Indications` = multiple)
-
 
 vars <- names(df)
 
@@ -84,12 +83,17 @@ knitr::kable(ptbl, caption = "Anticoagulation Indications")
 
 ```{r labs}
 df <- analyze.labs %>%
+    mutate(epsn = elisa == "Positive" & sra == FALSE,
+           epsna = elisa == "Positive" & is.na(sra)) %>%
     select(`Serum Creatinine` = scr,
            `Creatinine Clearance` = crcl,
            AST = ast,
            ALT = alt,
            `Total Bili` = t.bili, 
-           `Heparin ELISA` = elisa)
+           `Heparin ELISA` = elisa,
+           `ELISA pos / SRA pos` = sra,
+           `ELISA pos / SRA neg` = epsn,
+           `ELISA pos / no SRA` = epsna)
 
 vars <- names(df)
 # fvars <- "elisa"

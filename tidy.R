@@ -210,6 +210,7 @@ tmp.levels <- c("warfarin", "rivaroxaban", "apixaban", "dabigatran", "edoxaban")
 ## convert to wide data set; make sure all included patients are on the list
 ## change NA to FALSE
 data.home.meds <- bind_rows(data.home.meds, tmp.hm) %>%
+    group_by(pie.id) %>%
     mutate(hmed = factor(hmed, levels=tmp.levels),
            value = TRUE) %>%
     spread(hmed, value, fill=FALSE, drop=FALSE) %>%
@@ -458,9 +459,7 @@ data.blood <- raw.blood %>%
     ungroup %>%
     mutate(prod = factor(prod, levels=levels),
            value = TRUE) %>%
-    select(pie.id, prod, value) %>%
-    group_by(pie.id, prod) %>%
-    distinct %>%
+    distinct(pie.id, prod, value) %>%
     spread(prod, value, fill=FALSE, drop=FALSE) %>%
     full_join(pts.include, by="pie.id") %>%
     select(-(bival.start:warf.start)) %>%

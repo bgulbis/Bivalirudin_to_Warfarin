@@ -282,7 +282,8 @@ analyze.bleed <- select(data.bleed.bival, pie.id, major.bleed, minor.bleed, hgb.
     rename(new.thrombosis = manual) %>%
     ungroup
 
-analyze.labs <- data.labs.baseline %>% ungroup
+analyze.labs <- left_join(data.labs.baseline, data.sra, by = "pie.id") %>% 
+    ungroup()
 analyze.ptt.perc <- data.labs.ptt.perc %>% ungroup
 analyze.bival <- data.bival
 analyze.meds <- data.meds %>% ungroup
