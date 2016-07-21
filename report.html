@@ -2134,23 +2134,7 @@ knitr::kable(ptbl, caption = &quot;Values for Change in INR at time of Therapeut
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>summary(tbl)</code></pre>
-<pre><code>## 
-##      ### Summary of continuous variables ###
-## 
-## strata: Overall
-##              n miss p.miss  mean    sd median   p25   p75  min  max skew
-## inr.before 279    0      0   1.2   0.2    1.1  1.06   1.5  1.0    2  0.5
-## inr        279    0      0   1.5   0.3    1.4  1.31   1.5  1.1    4  3.7
-## ptt        279    0      0  63.0   8.1   61.7 56.90  70.3 50.0   80  0.3
-## inr.change 279    0      0   0.3   0.3    0.2  0.09   0.4 -0.3    3  2.6
-## duration   279    0      0 353.0 351.8  217.6 63.42 590.0  1.5 1288  1.0
-##            kurt
-## inr.before -1.4
-## inr        26.1
-## ptt        -0.9
-## inr.change 20.9
-## duration   -0.2</code></pre>
+<pre class="r"><code># summary(tbl)</code></pre>
 <pre class="r"><code>tbl &lt;- CreateTableOne(vars = vars, data = df)
 ptbl &lt;- print(tbl, printToggle = FALSE, nonnormal = c(&quot;inr.before&quot;, &quot;inr&quot;, &quot;ptt&quot;, &quot;inr.change&quot;, &quot;duration&quot;))
 knitr::kable(ptbl)</code></pre>
