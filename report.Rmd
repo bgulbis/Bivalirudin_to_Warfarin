@@ -472,6 +472,41 @@ layout <- rbind(c(1, 2), c(3, 4), c(5, 5))
 grid.arrange(graph.inr1, graph.inr2, graph.ptt1, graph.ptt2, legend, nrow = 3, ncol = 2, layout_matrix = layout, heights = unit(c(2, 2, 0.5), c("in", "in", "in")))
 ```
 
+```{r}
+baseline <- analyze.labs.serial %>%
+    filter(lab %in% c("inr", "ptt"),
+           lab.datetime <= bival.start) %>%
+    group_by(pie.id, lab) %>%
+    arrange(lab.datetime) %>%
+    summarize(baseline = last(result),
+              baseline_datetime = last(lab.datetime))
+
+dual_data <- analyze.labs.serial %>%
+    left_join(baseline, by = c("pie.id", "lab")) %>%
+    filter(lab %in% c("inr", "ptt"),
+           # first(lab.datetime) > bival.start,
+           # last(lab.datetime) > bival.start,
+           # lab.datetime >= bival.start + diff(from),
+           # lab.datetime > bival.start,
+           lab.datetime >= baseline_datetime,
+           lab.datetime <= bival.start + diff(to),
+           warf.start >= bival.start + days(1)) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units)),
+           warf.given = ifelse(lab.datetime >= warf.start, TRUE, FALSE)) %>%
+    group_by(pie.id, lab) %>%
+    mutate(lab_change = result / first(result) * 100)
+
+dual_data %>%
+    filter(!warf.given) %>%
+    ggplot(aes(x = bival.diff, y = lab_change, color = lab)) +
+    # geom_line(aes(linetype = lab))
+    geom_point(alpha = 0.4) +
+    geom_smooth() +
+    coord_cartesian(ylim = c(0, 250))
+
+```
+
+
 ```{r inr_chg_all, fig.cap="Change in INR relative to bivalirudin initiation over 10 days"}
 to = 10
 xlim <- c(from, to)
