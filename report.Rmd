@@ -14,17 +14,17 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
 ```{r setup, include=FALSE}
-library(BGTools)
-library(dplyr)
-library(tidyr)
+# library(BGTools)
+library(tidyverse)
 library(lubridate)
-library(ggplot2)
+library(forcats)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
 library(tableone)
+library(themebg)
 
-tmp <- get_rds("Analysis")
+tmp <- dirr::get_rds("Analysis")
 ```
 
 ## Results
@@ -36,7 +36,7 @@ df <- analyze.demographics %>%
            Sex = sex,
            Race = race,
            `Length of Stay` = los,
-           `Discarge Disposition` = disposition)
+           `Discharge Disposition` = disposition)
 
 vars <- names(df)
 fvars <- names(df)[c(2, 3, 5)]
@@ -109,18 +109,22 @@ knitr::kable(ptbl, caption = "Baseline Labs (Medians)")
 ```
 
 ```{r meds}
-vars <- names(analyze.meds[-1])
-
-tbl <- CreateTableOne(vars = vars, data = analyze.meds, factorVars = vars)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Medications Administered During Hospitalization")
+analyze.meds %>%
+    select(-pie.id) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Medications Administered During Hospitalization")
 ```
 
 ### Bivalirudin Data
 
 ```{r bival}
-df <- inner_join(analyze.bival, analyze.demographics[c("pie.id", "bival.prior.warf", "overlap", "proc.48hrs")], by = "pie.id") %>%
+analyze.bival %>%
+    inner_join(analyze.demographics[c("pie.id", "bival.prior.warf", "overlap", "proc.48hrs")], by = "pie.id") %>%
     select(`Starting Rate` = first.rate,
            `Final Rate` = last.rate,
            `Minimum Rate` = min.rate,
@@ -130,102 +134,87 @@ df <- inner_join(analyze.bival, analyze.demographics[c("pie.id", "bival.prior.wa
            `Time-Weighted Average Rate` = time.wt.rate,
            `Drip Duration Prior to Warfarin` = bival.prior.warf,
            `Days Overlap with Warfarin` = overlap,
-           `Procedure Prior to Bivalirudin` = proc.48hrs)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Bivalirudin Infusion Information")
-
-ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "Bivalirudin Infusion (Medians)")
+           `Procedure Prior to Bivalirudin` = proc.48hrs) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Bivalirudin Infusion Information")
 ```
 
 ```{r percent_tx}
-df <- analyze.ptt.perc %>%
+analyze.ptt.perc %>%
     select(`Within Goal PTT Range` = perc.time.goal,
            `Below Goal PTT Range` = perc.time.low,
-           `Above Goal PTT Range` = perc.time.high)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Percent of Time PTT Values were In-Range")
-
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "Percent of PTT Values (Medians)")
+           `Above Goal PTT Range` = perc.time.high) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Percent of Time PTT Values were In-Range")
 ```
 
 ### Primary Endpoints
-```{r endpoints}
-df <- analyze.coags %>%
+
+```{r, fig.cap="Distribution of INR values at key time points relative to bivalirudin initiation and cessation"}
+analyze.coags %>%
+    select(inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    gather(key, inr, inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    filter(!is.na(inr)) %>%
+    dmap_at("key", fct_inorder) %>%
+    ggplot(aes(x = key, y = inr)) +
+    geom_hline(yintercept = 2, color = "light gray") +
+    geom_hline(yintercept = 3, color = "light gray") +
+    geom_boxplot() +
+    scale_x_discrete("Time point relative to bivalirudin", labels = c("Before Initiation", "After Initiation", "Before Cessation", "After Cessation")) +
+    ylab("INR") +
+    theme_bg(xticks = FALSE)
+```
+
+```{r}
+analyze.coags %>%
     select(`INR at Baseline` = inr.before,
            `PTT at Baseline` = ptt.before,
            `INR at First Therapeutic PTT` = inr.txptt,
            `First Therapeutic PTT` = ptt.tx,
            `Time to First Therapeutic PTT` = inr.txptt.time,
-           `Change in INR at First Therapeutic PTT` = inr.change)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Primary Endpoints and Related Data")
-
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "Primary Endpoints (Medians)")
-
-# summary(tbl, digits = 2)
+           `Change in INR at First Therapeutic PTT` = inr.change) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Primary endpoint and related data")
 ```
+
 
 ### Secondary Endpoints
 ```{r}
-df <- analyze.coags %>%
+analyze.coags %>%
     select(`INR at 12-Hours` = inr.12hr,
            `PTT at 12-Hours` = ptt.12hr,
            `Change in INR at 12-Hours` = inr.change.12hr,
            `INR at 24-Hours` = inr.24hr,
            `PTT at 24-Hours` = ptt.24hr,
-           `Change in INR at 24-Hours` = inr.change.24hr)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "INR Change at 12- and 24-Hours")
-
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "INR Change at 12- and 24-Hours (Medians)")
+           `Change in INR at 24-Hours` = inr.change.24hr) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "INR Change at 12- and 24-Hours")
 ```
 
 ```{r}
-df <- analyze.coags %>%
+analyze.coags %>%
     select(`INR Prior to Cessation` = inr.before.stop,
            `PTT Prior to Cessation` = ptt.before.stop,
            `INR After Cessation` = inr.after.stop,
            `PTT After Cessation` = ptt.after.stop,
-           `Change in INR at Cessation` = inr.change.stop)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "INR Change at Bivalirudin Cessation")
-
-ptbl <- print(tbl, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "INR Change at Bivalirudin Cessation (Medians)")
+           `Change in INR at Cessation` = inr.change.stop) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "INR Change at Bivalirudin Cessation")
 ```
 
 ### Safety Endpoints
@@ -337,28 +326,28 @@ print(graph)
 ### Change in INR
 
 ```{r inr_chg_bival_start, fig.cap="Change in INR values at bivalirudin initiation"}
-graph <- analyze.labs.serial %>%
+analyze.labs.serial %>%
     filter(lab == "inr",
            first(lab.datetime) < bival.start,
            last(lab.datetime) > bival.start,
-           lab.datetime >= bival.start + diff(from),
-           lab.datetime <= bival.start + diff(to),
-           warf.start >= bival.start + days(1)) %>%
-    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = diff.units))) %>%
-    ggplot(aes(x = bival.diff, y = result, color = pie.id)) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(alpha = graph.alpha) +
-    geom_line(alpha = graph.alpha) +
-    geom_smooth(aes(group = NULL), color = "blue", se = FALSE) +
-    geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
+           lab.datetime >= bival.start + days(-2),
+           lab.datetime <= bival.start + days(5),
+           warf.start >= bival.start + days(1),
+           lab.datetime <= warf.start) %>%
+    mutate(bival.diff = as.numeric(difftime(lab.datetime, bival.start, units = "days"))) %>%
+    ggplot(aes(x = bival.diff, y = result)) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
+    geom_point(shape = 1) +
+    # geom_line(alpha = graph.alpha) +
+    geom_smooth(aes(group = NULL), color = "blue") +
+    # geom_smooth(aes(group = bival.diff <= 0), method = "lm", color = "black") +
     # ggtitle(fig_cap) +
-    xlab(xlab.start) +
-    ylab(ylab.inr) +
-    scale_x_continuous(breaks = x.breaks) +
-    coord_cartesian(xlim = xlim, ylim = ylim.inr) +
-    theme(legend.position = "none")
-
-print(graph)
+    xlab("Time on bivalirudin (days)") +
+    ylab("INR") +
+    # scale_x_continuous(breaks = x.breaks) +
+    # coord_cartesian(xlim = xlim, ylim = ylim.inr) +
+    theme_bg()
+    # theme(legend.position = "none")
 ```
 
 This figure is depicting the mean INR value before and after bivalirudin initation (represented by the time point 0 on the x-axis). The blue line represents the smoothed mean INR value throughout the time period. The black line represents the linear mean INR value, split for values before initiation and after initiation. The colored lines and points represent individual patient INR values. Data from patients who started warfarin during the first 24 hours after bivalirudin initiation were excluded, so the INR increase during the first 24 hours of bivalirudin infusion should be the result of bivalirudin.
