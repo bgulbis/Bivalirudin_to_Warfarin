@@ -11,7 +11,7 @@
 
 <meta name="author" content="Andrea Fetea, Brian Gulbis, Andrea C. Hall" />
 
-<meta name="date" content="2017-05-04" />
+<meta name="date" content="2017-05-05" />
 
 <title>Evaluation of Bivalirudin’s Effect on the INR</title>
 
@@ -234,7 +234,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Evaluation of Bivalirudin’s Effect on the INR</h1>
 <h4 class="author"><em>Andrea Fetea, Brian Gulbis, Andrea C. Hall</em></h4>
-<h4 class="date"><em>May 04, 2017</em></h4>
+<h4 class="date"><em>May 05, 2017</em></h4>
 
 </div>
 
@@ -243,461 +243,652 @@ div.tocify {
 <h2>Results</h2>
 <div id="baseline-characteristics" class="section level3">
 <h3>Baseline Characteristics</h3>
-<pre class="r"><code>df &lt;- analyze.demographics %&gt;%
+<pre class="r"><code>analyze.demographics %&gt;%
     select(Age = age,
-           Sex = sex,
-           Race = race,
-           `Length of Stay` = los,
-           `Discharge Disposition` = disposition)
-
-vars &lt;- names(df)
-fvars &lt;- names(df)[c(2, 3, 5)]
-
-tbl &lt;- CreateTableOne(vars = vars, data = df, factorVars = fvars)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Demographics&quot;)</code></pre>
+           `Length of Stay` = los) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Demographics (Continuous)&quot;)</code></pre>
 <table>
-<caption>Demographics</caption>
+<caption>Demographics (Continuous)</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">median</th>
+<th align="right">25th</th>
+<th align="right">75th</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">Age</td>
+<td align="right">34</td>
+<td align="right">26.00</td>
+<td align="right">79.00</td>
+<td align="right">61.03</td>
+<td align="right">11.70</td>
+<td align="right">61.00</td>
+<td align="right">54.25</td>
+<td align="right">69.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>Age (mean (sd))</td>
-<td align="left">61.03 (11.70)</td>
-</tr>
-<tr class="odd">
-<td>Sex = Male (%)</td>
-<td align="left">21 (61.8)</td>
-</tr>
-<tr class="even">
-<td>Race (%)</td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td>African American</td>
-<td align="left">12 (35.3)</td>
-</tr>
-<tr class="even">
-<td>Other</td>
-<td align="left">4 (11.8)</td>
-</tr>
-<tr class="odd">
-<td>Unknown</td>
-<td align="left">2 ( 5.9)</td>
-</tr>
-<tr class="even">
-<td>White/Caucasian</td>
-<td align="left">16 (47.1)</td>
-</tr>
-<tr class="odd">
-<td>Length of Stay (mean (sd))</td>
-<td align="left">30.80 (21.41)</td>
-</tr>
-<tr class="even">
-<td>Discharge Disposition (%)</td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td>DC/DISC TO REHAB</td>
-<td align="left">9 (26.5)</td>
-</tr>
-<tr class="even">
-<td>Home</td>
-<td align="left">11 (32.4)</td>
-</tr>
-<tr class="odd">
-<td>Home Care with Home Health</td>
-<td align="left">7 (20.6)</td>
-</tr>
-<tr class="even">
-<td>Intermediate Care</td>
-<td align="left">1 ( 2.9)</td>
-</tr>
-<tr class="odd">
-<td>Long Term Care</td>
-<td align="left">3 ( 8.8)</td>
-</tr>
-<tr class="even">
-<td>Skilled Nursing Facility</td>
-<td align="left">3 ( 8.8)</td>
+<td align="left">Length of Stay</td>
+<td align="right">34</td>
+<td align="right">6.88</td>
+<td align="right">108.04</td>
+<td align="right">30.80</td>
+<td align="right">21.41</td>
+<td align="right">26.81</td>
+<td align="right">17.70</td>
+<td align="right">33.56</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = names(df)[c(1, 4)])
-
-knitr::kable(ptbl, caption = &quot;Demographics (Medians)&quot;)</code></pre>
+<pre class="r"><code>analyze.demographics %&gt;%
+    select(Male = sex) %&gt;%
+    dmap_at(&quot;Male&quot;, ~ .x == &quot;Male&quot;) %&gt;%
+    gather(variable, value) %&gt;%
+    # dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Gender&quot;)</code></pre>
 <table>
-<caption>Demographics (Medians)</caption>
+<caption>Gender</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
-</tr>
-<tr class="even">
-<td>Age (median [IQR])</td>
-<td align="left">61.00 [54.25, 69.00]</td>
-</tr>
-<tr class="odd">
-<td>Length of Stay (median [IQR])</td>
-<td align="left">26.81 [17.70, 33.56]</td>
+<td align="left">Male</td>
+<td align="right">21</td>
+<td align="right">61.76</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>vars &lt;- names(analyze.diagnosis[-1])
-
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.diagnosis, factorVars = vars)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Comorbidities&quot;)</code></pre>
+<pre class="r"><code>analyze.demographics %&gt;%
+    select(pie.id, race) %&gt;%
+    mutate(val = TRUE) %&gt;%
+    spread(race, val, fill = FALSE) %&gt;%
+    select(-pie.id) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Race&quot;)</code></pre>
+<table>
+<caption>Race</caption>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">African American</td>
+<td align="right">12</td>
+<td align="right">35.29</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Other</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">Unknown</td>
+<td align="right">2</td>
+<td align="right">5.88</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">White/Caucasian</td>
+<td align="right">16</td>
+<td align="right">47.06</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>analyze.demographics %&gt;%
+    select(pie.id, disposition) %&gt;%
+    mutate(val = TRUE) %&gt;%
+    spread(disposition, val, fill = FALSE) %&gt;%
+    select(-pie.id) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Discharge Dispostion&quot;)</code></pre>
+<table>
+<caption>Discharge Dispostion</caption>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">DC/DISC TO REHAB</td>
+<td align="right">9</td>
+<td align="right">26.47</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Home</td>
+<td align="right">11</td>
+<td align="right">32.35</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">Home Care with Home Health</td>
+<td align="right">7</td>
+<td align="right">20.59</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Intermediate Care</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">Long Term Care</td>
+<td align="right">3</td>
+<td align="right">8.82</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Skilled Nursing Facility</td>
+<td align="right">3</td>
+<td align="right">8.82</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>analyze.diagnosis %&gt;%
+    ungroup() %&gt;%
+    select(-pie.id) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Comorbidities&quot;)</code></pre>
 <table>
 <caption>Comorbidities</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">anemia</td>
+<td align="right">12</td>
+<td align="right">35.29</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>anemia = TRUE (%)</td>
-<td align="left">12 ( 35.3)</td>
+<td align="left">anticoag.chronic</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>anticoag.chronic = TRUE (%)</td>
-<td align="left">4 ( 11.8)</td>
+<td align="left">aortic.plaque</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>aortic.plaque = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">arf</td>
+<td align="right">20</td>
+<td align="right">58.82</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>arf = TRUE (%)</td>
-<td align="left">20 ( 58.8)</td>
+<td align="left">atrial.fib</td>
+<td align="right">14</td>
+<td align="right">41.18</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>atrial.fib = TRUE (%)</td>
-<td align="left">14 ( 41.2)</td>
+<td align="left">atrial.flutter</td>
+<td align="right">5</td>
+<td align="right">14.71</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>atrial.flutter = TRUE (%)</td>
-<td align="left">5 ( 14.7)</td>
+<td align="left">avm</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>avm = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">bleed.cns</td>
+<td align="right">3</td>
+<td align="right">8.82</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>bleed.cns = TRUE (%)</td>
-<td align="left">3 ( 8.8)</td>
+<td align="left">bleed.gi</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>bleed.gi = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
+<td align="left">bleed.major</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>bleed.major = TRUE (%)</td>
-<td align="left">4 ( 11.8)</td>
+<td align="left">bleed.minor</td>
+<td align="right">2</td>
+<td align="right">5.88</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>bleed.minor = TRUE (%)</td>
-<td align="left">2 ( 5.9)</td>
+<td align="left">cancer</td>
+<td align="right">2</td>
+<td align="right">5.88</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>cancer = TRUE (%)</td>
-<td align="left">2 ( 5.9)</td>
+<td align="left">ckd</td>
+<td align="right">7</td>
+<td align="right">20.59</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>ckd = TRUE (%)</td>
-<td align="left">7 ( 20.6)</td>
+<td align="left">copd</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>copd = TRUE (%)</td>
-<td align="left">4 ( 11.8)</td>
+<td align="left">dvt.acute</td>
+<td align="right">13</td>
+<td align="right">38.24</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>dvt.acute = TRUE (%)</td>
-<td align="left">13 ( 38.2)</td>
+<td align="left">dvt.chronic</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>dvt.chronic = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
+<td align="left">dvt.ob</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>dvt.ob = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">esoph.var</td>
+<td align="right">6</td>
+<td align="right">17.65</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>esoph.var = TRUE (%)</td>
-<td align="left">6 ( 17.6)</td>
+<td align="left">esrd</td>
+<td align="right">6</td>
+<td align="right">17.65</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>esrd = TRUE (%)</td>
-<td align="left">6 ( 17.6)</td>
+<td align="left">gi.ulcer</td>
+<td align="right">2</td>
+<td align="right">5.88</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>gi.ulcer = TRUE (%)</td>
-<td align="left">2 ( 5.9)</td>
+<td align="left">hemophil</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>hemophil = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">hepatitis</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>hepatitis = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">hit</td>
+<td align="right">8</td>
+<td align="right">23.53</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>hit = TRUE (%)</td>
-<td align="left">8 ( 23.5)</td>
+<td align="left">hypercoag</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>hypercoag = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">lv.thrombus</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>lv.thrombus = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">neph.synd</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>neph.synd = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">parox.noct.hgb</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>parox.noct.hgb = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">pe.acute</td>
+<td align="right">8</td>
+<td align="right">23.53</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>pe.acute = TRUE (%)</td>
-<td align="left">8 ( 23.5)</td>
+<td align="left">pe.chronic</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>pe.chronic = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">pe.ob</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>pe.ob = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">phlebitis</td>
+<td align="right">17</td>
+<td align="right">50.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>phlebitis = TRUE (%)</td>
-<td align="left">17 ( 50.0)</td>
+<td align="left">plasmin.def</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>plasmin.def = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">pvd</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>pvd = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
+<td align="left">short.gut</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>short.gut = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">sickle.cell</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>sickle.cell = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">stroke</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>stroke = TRUE (%)</td>
-<td align="left">4 ( 11.8)</td>
+<td align="left">tia</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>tia = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
-</tr>
-<tr class="odd">
-<td>ulcer.colitis = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">ulcer.colitis</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>df &lt;- analyze.indications %&gt;%
-    # group_by(pie.id) %&gt;%
-    # mutate(multiple = sum(afib, dvt, pe, other, valve) &gt; 1) %&gt;%
+<pre class="r"><code>analyze.indications %&gt;%
     ungroup() %&gt;%
-    select(`Atrial Fibrillation` = afib,
-           `Deep Vein Thrombosis` = dvt,
-           `Pulmonary Embolism` = pe,
-           `Valvular Heart Disease` = valve,
-           Other = other,
-           `Venous Thromboembolism` = vte,
-           `Multiple Indications` = multiple)
-
-vars &lt;- names(df)
-
-tbl &lt;- CreateTableOne(vars = vars, data = df)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Anticoagulation Indications&quot;)</code></pre>
+    select(-pie.id) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Anticoagulation Indications&quot;)</code></pre>
 <table>
 <caption>Anticoagulation Indications</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">afib</td>
+<td align="right">8</td>
+<td align="right">23.53</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>Atrial Fibrillation = TRUE (%)</td>
-<td align="left">8 (23.5)</td>
+<td align="left">dvt</td>
+<td align="right">6</td>
+<td align="right">17.65</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>Deep Vein Thrombosis = TRUE (%)</td>
-<td align="left">6 (17.6)</td>
+<td align="left">pe</td>
+<td align="right">8</td>
+<td align="right">23.53</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>Pulmonary Embolism = TRUE (%)</td>
-<td align="left">8 (23.5)</td>
+<td align="left">valve</td>
+<td align="right">3</td>
+<td align="right">8.82</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>Valvular Heart Disease = TRUE (%)</td>
-<td align="left">3 ( 8.8)</td>
+<td align="left">other</td>
+<td align="right">14</td>
+<td align="right">41.18</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>Other = TRUE (%)</td>
-<td align="left">14 (41.2)</td>
+<td align="left">vte</td>
+<td align="right">12</td>
+<td align="right">35.29</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>Venous Thromboembolism = TRUE (%)</td>
-<td align="left">12 (35.3)</td>
-</tr>
-<tr class="even">
-<td>Multiple Indications = TRUE (%)</td>
-<td align="left">5 (14.7)</td>
+<td align="left">multiple</td>
+<td align="right">5</td>
+<td align="right">14.71</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>df &lt;- analyze.labs %&gt;%
-    mutate(epsn = elisa == &quot;Positive&quot; &amp; sra == FALSE,
-           epsna = elisa == &quot;Positive&quot; &amp; is.na(sra)) %&gt;%
+<pre class="r"><code>analyze.labs %&gt;%
     select(`Serum Creatinine` = scr,
            `Creatinine Clearance` = crcl,
            AST = ast,
            ALT = alt,
-           `Total Bili` = t.bili, 
-           `Heparin ELISA` = elisa,
-           `ELISA pos / SRA pos` = sra,
-           `ELISA pos / SRA neg` = epsn,
-           `ELISA pos / no SRA` = epsna)
-
-vars &lt;- names(df)
-# fvars &lt;- &quot;elisa&quot;
-
-tbl &lt;- CreateTableOne(vars = vars, data = df)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Baseline Labs&quot;)</code></pre>
+           `Total Bili` = t.bili) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Baseline Labs&quot;)</code></pre>
 <table>
 <caption>Baseline Labs</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">median</th>
+<th align="right">25th</th>
+<th align="right">75th</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">Serum Creatinine</td>
+<td align="right">32</td>
+<td align="right">0.60</td>
+<td align="right">11.10</td>
+<td align="right">1.83</td>
+<td align="right">1.87</td>
+<td align="right">1.30</td>
+<td align="right">1.00</td>
+<td align="right">1.97</td>
+<td align="right">2</td>
 </tr>
 <tr class="even">
-<td>Serum Creatinine (mean (sd))</td>
-<td align="left">1.83 (1.87)</td>
+<td align="left">Creatinine Clearance</td>
+<td align="right">32</td>
+<td align="right">6.62</td>
+<td align="right">116.01</td>
+<td align="right">52.60</td>
+<td align="right">27.47</td>
+<td align="right">58.91</td>
+<td align="right">27.55</td>
+<td align="right">71.59</td>
+<td align="right">2</td>
 </tr>
 <tr class="odd">
-<td>Creatinine Clearance (mean (sd))</td>
-<td align="left">52.60 (27.47)</td>
+<td align="left">AST</td>
+<td align="right">30</td>
+<td align="right">16.00</td>
+<td align="right">356.00</td>
+<td align="right">71.00</td>
+<td align="right">69.32</td>
+<td align="right">55.00</td>
+<td align="right">30.25</td>
+<td align="right">76.75</td>
+<td align="right">4</td>
 </tr>
 <tr class="even">
-<td>AST (mean (sd))</td>
-<td align="left">71.00 (69.32)</td>
+<td align="left">ALT</td>
+<td align="right">30</td>
+<td align="right">18.00</td>
+<td align="right">562.00</td>
+<td align="right">76.37</td>
+<td align="right">109.81</td>
+<td align="right">51.00</td>
+<td align="right">26.50</td>
+<td align="right">62.75</td>
+<td align="right">4</td>
 </tr>
 <tr class="odd">
-<td>ALT (mean (sd))</td>
-<td align="left">76.37 (109.81)</td>
-</tr>
-<tr class="even">
-<td>Total Bili (mean (sd))</td>
-<td align="left">1.50 (2.37)</td>
-</tr>
-<tr class="odd">
-<td>Heparin ELISA = Positive (%)</td>
-<td align="left">19 (70.4)</td>
-</tr>
-<tr class="even">
-<td>ELISA pos / SRA pos = TRUE (%)</td>
-<td align="left">2 (16.7)</td>
-</tr>
-<tr class="odd">
-<td>ELISA pos / SRA neg = TRUE (%)</td>
-<td align="left">9 (47.4)</td>
-</tr>
-<tr class="even">
-<td>ELISA pos / no SRA = TRUE (%)</td>
-<td align="left">8 (29.6)</td>
+<td align="left">Total Bili</td>
+<td align="right">30</td>
+<td align="right">0.20</td>
+<td align="right">13.20</td>
+<td align="right">1.50</td>
+<td align="right">2.37</td>
+<td align="right">0.85</td>
+<td align="right">0.43</td>
+<td align="right">1.45</td>
+<td align="right">4</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>ptbl &lt;- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = &quot;Baseline Labs (Medians)&quot;)</code></pre>
+<pre class="r"><code>analyze.labs %&gt;%
+    select(elisa, sra) %&gt;%
+    dmap_at(&quot;elisa&quot;, ~ .x == &quot;Positive&quot;) %&gt;%
+    mutate(epsn = elisa &amp; !sra,
+           epsna = elisa &amp; is.na(sra)) %&gt;%
+    select(`ELISA pos` = elisa,
+           `ELISA pos / SRA pos` = sra,
+           `ELISA pos / SRA neg` = epsn,
+           `ELISA pos / no SRA` = epsna) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;HIT Labs&quot;)</code></pre>
 <table>
-<caption>Baseline Labs (Medians)</caption>
+<caption>HIT Labs</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">ELISA pos</td>
+<td align="right">19</td>
+<td align="right">70.37</td>
+<td align="right">7</td>
 </tr>
 <tr class="even">
-<td>Serum Creatinine (median [IQR])</td>
-<td align="left">1.30 [1.00, 1.97]</td>
+<td align="left">ELISA pos / SRA pos</td>
+<td align="right">2</td>
+<td align="right">16.67</td>
+<td align="right">22</td>
 </tr>
 <tr class="odd">
-<td>Creatinine Clearance (median [IQR])</td>
-<td align="left">58.91 [27.55, 71.59]</td>
+<td align="left">ELISA pos / SRA neg</td>
+<td align="right">9</td>
+<td align="right">47.37</td>
+<td align="right">15</td>
 </tr>
 <tr class="even">
-<td>AST (median [IQR])</td>
-<td align="left">55.00 [30.25, 76.75]</td>
-</tr>
-<tr class="odd">
-<td>ALT (median [IQR])</td>
-<td align="left">51.00 [26.50, 62.75]</td>
-</tr>
-<tr class="even">
-<td>Total Bili (median [IQR])</td>
-<td align="left">0.85 [0.42, 1.45]</td>
+<td align="left">ELISA pos / no SRA</td>
+<td align="right">8</td>
+<td align="right">29.63</td>
+<td align="right">7</td>
 </tr>
 </tbody>
 </table>
@@ -1208,6 +1399,180 @@ Distribution of INR values at key time points relative to bivalirudin initiation
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>ptt &lt;- analyze.labs.serial %&gt;%
+    filter(lab == &quot;ptt&quot;,
+           # result &gt;= 50,
+           # result &lt;= 80,
+           lab.datetime &gt;= bival.start,
+           lab.datetime &lt;= warf.start,
+           lab.datetime &lt;= bival.stop) %&gt;%
+    select(pie.id, lab.datetime, bival.start, ptt = result)
+
+inr &lt;- analyze.labs.serial %&gt;%
+    filter(lab == &quot;inr&quot;,
+           lab.datetime &gt;= bival.start,
+           lab.datetime &lt;= warf.start) %&gt;%
+    inner_join(analyze.coags[c(&quot;pie.id&quot;, &quot;inr.before&quot;)], by = &quot;pie.id&quot;) %&gt;%
+    filter(!is.na(inr.before)) %&gt;%
+    select(pie.id, lab.datetime, inr = result, inr.before)
+
+inr_ptt_fill &lt;- full_join(ptt, inr, by = c(&quot;pie.id&quot;, &quot;lab.datetime&quot;)) %&gt;%
+    arrange(pie.id, lab.datetime) %&gt;%
+    group_by(pie.id) %&gt;%
+    fill(bival.start, ptt, inr, inr.before) %&gt;%
+    filter(!is.na(inr),
+           !is.na(ptt)) %&gt;%
+    mutate(duration = as.numeric(difftime(lab.datetime, bival.start, units = &quot;hours&quot;)),
+           inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before * 100) %&gt;%
+    arrange(pie.id, lab.datetime)
+
+inr_ptt_exact &lt;- inner_join(ptt, inr, by = c(&quot;pie.id&quot;, &quot;lab.datetime&quot;)) %&gt;%
+    arrange(pie.id, lab.datetime) %&gt;%
+    group_by(pie.id) %&gt;%
+    fill(bival.start, ptt, inr, inr.before) %&gt;%
+    filter(!is.na(inr),
+           !is.na(ptt)) %&gt;%
+    mutate(duration = as.numeric(difftime(lab.datetime, bival.start, units = &quot;hours&quot;)),
+           inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before * 100) %&gt;%
+    arrange(pie.id, lab.datetime)</code></pre>
+<pre class="r"><code>ggplot(inr_ptt_fill, aes(x = ptt, y = inr.change.pct)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = &quot;lm&quot;) +
+    theme_bg()</code></pre>
+<div class="figure">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAAXVBMVEUAAAAzZv89PT1ZWVlZWXhZWZRZeLFZlMt4WVl4lJR4sct4seWUWVmUWZSUsbGUy/+xeFmxlFmx5f/LlFnL///W1tbZ2dnlsXjl5bHl////y5T/5bH//8v//+X///9j/52xAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3dCXvjNruYYY6UZNyO20zjqG40Hv7/n1lJJEHsBF8CBJfnvs53vGmhGPsZgJuaFgAg0tReAADYKwIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABBaNaD/9/+u+WwAUBYBBQAhAgoAQgQUAIQIKAAIEVAAECKgACBEQAFAiIACgBABBQAhAgoAQgQUAIQIKAAIEVAAECKgACBEQAFAiIACgBABBQAhAgoAQgQUAIQIKAAIEVAAECKgACBEQAFAiIACgBABBQAhAgoAQgQUAIQIKAAIEVAAECKgACBEQAFAiIACgBABBQAhAnp8zar/kYETIaBH98wnCQWKIKAH1xgfAOREQA+OgALlENBja5xPAGRDQI+NgAIFEdCDYwoPlENAD46AAuUQ0KPjMCagGAJ6fOQTKISAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQAQUAIQIKAEIEFACECCgACBFQABAioAAgREABQIiAAoAQ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" alt="Relationship between PTT and percent change in INR from baseline. For time points when both a PTT and INR were not reported, the missing values were extrapolated by carrying the last value forward." width="672" />
+<p class="caption">
+Relationship between PTT and percent change in INR from baseline. For time points when both a PTT and INR were not reported, the missing values were extrapolated by carrying the last value forward.
+</p>
+</div>
+<pre class="r"><code>lm(inr.change.pct ~ ptt, inr_ptt_fill) %&gt;%
+    summary() %&gt;%
+    broom::glance() %&gt;%
+    knitr::kable(digits = 3, caption = &quot;Linear model of percent change in INR relative to PTT&quot;)</code></pre>
+<table>
+<caption>Linear model of percent change in INR relative to PTT</caption>
+<thead>
+<tr class="header">
+<th align="right">r.squared</th>
+<th align="right">adj.r.squared</th>
+<th align="right">sigma</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">df</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.262</td>
+<td align="right">0.261</td>
+<td align="right">19.307</td>
+<td align="right">164.696</td>
+<td align="right">0</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>lm(inr.change.pct ~ ptt, inr_ptt_fill) %&gt;%
+    summary() %&gt;%
+    broom::tidy() %&gt;%
+    knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">-28.860</td>
+<td align="right">4.152</td>
+<td align="right">-6.951</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">ptt</td>
+<td align="right">0.825</td>
+<td align="right">0.064</td>
+<td align="right">12.833</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ggplot(inr_ptt_exact, aes(x = ptt, y = inr.change.pct)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = &quot;lm&quot;) +
+    theme_bg()</code></pre>
+<div class="figure">
+<img src="data:image/png;base64,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" alt="Relationship between PTT and percent change in INR from baseline using only values drawn at the same time points" width="672" />
+<p class="caption">
+Relationship between PTT and percent change in INR from baseline using only values drawn at the same time points
+</p>
+</div>
+<pre class="r"><code>lm(inr.change.pct ~ ptt, inr_ptt_exact) %&gt;%
+    summary() %&gt;%
+    broom::glance() %&gt;%
+    knitr::kable(digits = 3, caption = &quot;Linear model of percent change in INR relative to PTT&quot;)</code></pre>
+<table>
+<caption>Linear model of percent change in INR relative to PTT</caption>
+<thead>
+<tr class="header">
+<th align="right">r.squared</th>
+<th align="right">adj.r.squared</th>
+<th align="right">sigma</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">df</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.281</td>
+<td align="right">0.279</td>
+<td align="right">19.841</td>
+<td align="right">136.267</td>
+<td align="right">0</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>lm(inr.change.pct ~ ptt, inr_ptt_exact) %&gt;%
+    summary() %&gt;%
+    broom::tidy() %&gt;%
+    knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">-36.650</td>
+<td align="right">5.220</td>
+<td align="right">-7.021</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">ptt</td>
+<td align="right">0.948</td>
+<td align="right">0.081</td>
+<td align="right">11.673</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="secondary-endpoints" class="section level3">
 <h3>Secondary Endpoints</h3>
@@ -1407,135 +1772,231 @@ Distribution of INR values at key time points relative to bivalirudin initiation
 </div>
 <div id="safety-endpoints" class="section level3">
 <h3>Safety Endpoints</h3>
-<pre class="r"><code>vars &lt;- names(analyze.bleed[-1])
-fvars &lt;- c(&quot;major.bleed&quot;, &quot;minor.bleed&quot;, &quot;new.thrombosis&quot;)
-
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.bleed, factorVars = fvars)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Bleeding and Thrombosis&quot;)</code></pre>
+<pre class="r"><code>analyze.bleed %&gt;%
+    ungroup() %&gt;%
+    select(`Major Bleed` = major.bleed,
+           `Minor Bleed` = minor.bleed,
+           `New Thrombosis` = new.thrombosis) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Bleeding and Thrombosis Events&quot;)</code></pre>
 <table>
-<caption>Bleeding and Thrombosis</caption>
+<caption>Bleeding and Thrombosis Events</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">Major Bleed</td>
+<td align="right">4</td>
+<td align="right">11.76</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>major.bleed = TRUE (%)</td>
-<td align="left">4 ( 11.8)</td>
+<td align="left">Minor Bleed</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>minor.bleed = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
-</tr>
-<tr class="even">
-<td>hgb.drop (mean (sd))</td>
-<td align="left">-3.55 (1.06)</td>
-</tr>
-<tr class="odd">
-<td>bival.drop.diff (mean (sd))</td>
-<td align="left">72.38 (19.80)</td>
-</tr>
-<tr class="even">
-<td>warf.drop.diff (mean (sd))</td>
-<td align="left">-63.22 (0.08)</td>
-</tr>
-<tr class="odd">
-<td>new.thrombosis = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">New Thrombosis</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>vars &lt;- names(analyze.prbc[-1])
-
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.prbc, factorVars = vars)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Blood Product Administration&quot;)</code></pre>
+<pre class="r"><code>analyze.bleed %&gt;%
+    select(`Hgb drop` = hgb.drop,
+           `Hours from bivalirudin start to hgb drop` = bival.drop.diff,
+           `Hours from warfarin start to hgb drop` = warf.drop.diff) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Bleeding-related labs&quot;)</code></pre>
+<table>
+<caption>Bleeding-related labs</caption>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">median</th>
+<th align="right">25th</th>
+<th align="right">75th</th>
+<th align="right">n/a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Hgb drop</td>
+<td align="right">2</td>
+<td align="right">-4.30</td>
+<td align="right">-2.80</td>
+<td align="right">-3.55</td>
+<td align="right">1.06</td>
+<td align="right">-3.55</td>
+<td align="right">-3.92</td>
+<td align="right">-3.18</td>
+<td align="right">32</td>
+</tr>
+<tr class="even">
+<td align="left">Hours from bivalirudin start to hgb drop</td>
+<td align="right">2</td>
+<td align="right">58.38</td>
+<td align="right">86.38</td>
+<td align="right">72.38</td>
+<td align="right">19.80</td>
+<td align="right">72.38</td>
+<td align="right">65.38</td>
+<td align="right">79.38</td>
+<td align="right">32</td>
+</tr>
+<tr class="odd">
+<td align="left">Hours from warfarin start to hgb drop</td>
+<td align="right">2</td>
+<td align="right">-63.28</td>
+<td align="right">-63.17</td>
+<td align="right">-63.22</td>
+<td align="right">0.08</td>
+<td align="right">-63.22</td>
+<td align="right">-63.25</td>
+<td align="right">-63.20</td>
+<td align="right">32</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>analyze.prbc %&gt;%
+    ungroup() %&gt;%
+    select(PRBC = prbc,
+           FFP = ffp,
+           Platelets = platelet,
+           Cryoprecipitate = cryo) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Blood Product Administration&quot;)</code></pre>
 <table>
 <caption>Blood Product Administration</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">PRBC</td>
+<td align="right">6</td>
+<td align="right">17.65</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>prbc = TRUE (%)</td>
-<td align="left">6 ( 17.6)</td>
+<td align="left">FFP</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>ffp = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
+<td align="left">Platelets</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>platelet = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
-</tr>
-<tr class="odd">
-<td>cryo = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">Cryoprecipitate</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>vars &lt;- names(analyze.reversal[-1])
-
-tbl &lt;- CreateTableOne(vars = vars, data = analyze.reversal, factorVars = vars)
-ptbl &lt;- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = &quot;Reversal Agent Administration&quot;)</code></pre>
+<pre class="r"><code>analyze.reversal %&gt;%
+    ungroup() %&gt;%
+    select(Phytonadione = phytonadione,
+           `Factor VIIa` = `coagulation factor viia`,
+           PCC = `prothrombin complex`,
+           `Aminocaproic acid` = `aminocaproic acid`,
+           `Tranexamic acid` = `tranexamic acid`,
+           Fibrinogen = fibrinogen,
+           `Topical Thrombin` = `thrombin topical`) %&gt;%
+    gather(variable, value) %&gt;%
+    dmap_at(&quot;variable&quot;, fct_inorder) %&gt;%
+    group_by(variable) %&gt;%
+    summarize_at(&quot;value&quot;, funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %&gt;%
+    mutate(`%` = n / total * 100) %&gt;%
+    select(variable, n, `%`, `n/a`) %&gt;%
+    knitr::kable(digits = 2, caption = &quot;Reversal Agent Administration&quot;)</code></pre>
 <table>
 <caption>Reversal Agent Administration</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th align="left">Overall</th>
+<th align="left">variable</th>
+<th align="right">n</th>
+<th align="right">%</th>
+<th align="right">n/a</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>n</td>
-<td align="left">34</td>
+<td align="left">Phytonadione</td>
+<td align="right">1</td>
+<td align="right">2.94</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>coagulation factor viia = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">Factor VIIa</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>prothrombin complex = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">PCC</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>aminocaproic acid = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">Aminocaproic acid</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>tranexamic acid = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">Tranexamic acid</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
-<td>fibrinogen = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
+<td align="left">Fibrinogen</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
-<td>thrombin topical = FALSE (%)</td>
-<td align="left">34 (100.0)</td>
-</tr>
-<tr class="even">
-<td>phytonadione = TRUE (%)</td>
-<td align="left">1 ( 2.9)</td>
+<td align="left">Topical Thrombin</td>
+<td align="right">0</td>
+<td align="right">0.00</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>

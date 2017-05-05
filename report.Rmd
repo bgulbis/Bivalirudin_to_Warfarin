@@ -23,6 +23,7 @@ library(gridExtra)
 library(RColorBrewer)
 library(tableone)
 library(themebg)
+library(broom)
 
 tmp <- dirr::get_rds("Analysis")
 ```
@@ -31,81 +32,117 @@ tmp <- dirr::get_rds("Analysis")
 
 ### Baseline Characteristics
 ```{r demographics}
-df <- analyze.demographics %>%
+
+analyze.demographics %>%
     select(Age = age,
-           Sex = sex,
-           Race = race,
-           `Length of Stay` = los,
-           `Discharge Disposition` = disposition)
+           `Length of Stay` = los) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Demographics (Continuous)")
+```
 
-vars <- names(df)
-fvars <- names(df)[c(2, 3, 5)]
+```{r}
+analyze.demographics %>%
+    select(Male = sex) %>%
+    dmap_at("Male", ~ .x == "Male") %>%
+    gather(variable, value) %>%
+    # dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Gender")
+```
 
-tbl <- CreateTableOne(vars = vars, data = df, factorVars = fvars)
-ptbl <- print(tbl, printToggle = FALSE)
+```{r}
+analyze.demographics %>%
+    select(pie.id, race) %>%
+    mutate(val = TRUE) %>%
+    spread(race, val, fill = FALSE) %>%
+    select(-pie.id) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Race")
+```
 
-knitr::kable(ptbl, caption = "Demographics")
-
-ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = names(df)[c(1, 4)])
-
-knitr::kable(ptbl, caption = "Demographics (Medians)")
+```{r}
+analyze.demographics %>%
+    select(pie.id, disposition) %>%
+    mutate(val = TRUE) %>%
+    spread(disposition, val, fill = FALSE) %>%
+    select(-pie.id) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Discharge Dispostion")
 ```
 
 ```{r pmh}
-vars <- names(analyze.diagnosis[-1])
-
-tbl <- CreateTableOne(vars = vars, data = analyze.diagnosis, factorVars = vars)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Comorbidities")
+analyze.diagnosis %>%
+    ungroup() %>%
+    select(-pie.id) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Comorbidities")
 ```
 
 ```{r indications}
-df <- analyze.indications %>%
-    # group_by(pie.id) %>%
-    # mutate(multiple = sum(afib, dvt, pe, other, valve) > 1) %>%
+analyze.indications %>%
     ungroup() %>%
-    select(`Atrial Fibrillation` = afib,
-           `Deep Vein Thrombosis` = dvt,
-           `Pulmonary Embolism` = pe,
-           `Valvular Heart Disease` = valve,
-           Other = other,
-           `Venous Thromboembolism` = vte,
-           `Multiple Indications` = multiple)
-
-vars <- names(df)
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Anticoagulation Indications")
+    select(-pie.id) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Anticoagulation Indications")
 ```
 
 ```{r labs}
-df <- analyze.labs %>%
-    mutate(epsn = elisa == "Positive" & sra == FALSE,
-           epsna = elisa == "Positive" & is.na(sra)) %>%
+analyze.labs %>%
     select(`Serum Creatinine` = scr,
            `Creatinine Clearance` = crcl,
            AST = ast,
            ALT = alt,
-           `Total Bili` = t.bili, 
-           `Heparin ELISA` = elisa,
+           `Total Bili` = t.bili) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Baseline Labs")
+```
+
+```{r}
+analyze.labs %>%
+    select(elisa, sra) %>%
+    dmap_at("elisa", ~ .x == "Positive") %>%
+    mutate(epsn = elisa & !sra,
+           epsna = elisa & is.na(sra)) %>%
+    select(`ELISA pos` = elisa,
            `ELISA pos / SRA pos` = sra,
            `ELISA pos / SRA neg` = epsn,
-           `ELISA pos / no SRA` = epsna)
-
-vars <- names(df)
-# fvars <- "elisa"
-
-tbl <- CreateTableOne(vars = vars, data = df)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Baseline Labs")
-
-ptbl <- print(tbl$ContTable, printToggle = FALSE, nonnormal = vars)
-
-knitr::kable(ptbl, caption = "Baseline Labs (Medians)")
+           `ELISA pos / no SRA` = epsna) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "HIT Labs")
 ```
 
 ```{r meds}
@@ -186,6 +223,88 @@ analyze.coags %>%
     knitr::kable(digits = 2, caption = "Primary endpoint and related data")
 ```
 
+```{r}
+ptt <- analyze.labs.serial %>%
+    filter(lab == "ptt",
+           # result >= 50,
+           # result <= 80,
+           lab.datetime >= bival.start,
+           lab.datetime <= warf.start,
+           lab.datetime <= bival.stop) %>%
+    select(pie.id, lab.datetime, bival.start, ptt = result)
+
+inr <- analyze.labs.serial %>%
+    filter(lab == "inr",
+           lab.datetime >= bival.start,
+           lab.datetime <= warf.start) %>%
+    inner_join(analyze.coags[c("pie.id", "inr.before")], by = "pie.id") %>%
+    filter(!is.na(inr.before)) %>%
+    select(pie.id, lab.datetime, inr = result, inr.before)
+
+inr_ptt_fill <- full_join(ptt, inr, by = c("pie.id", "lab.datetime")) %>%
+    arrange(pie.id, lab.datetime) %>%
+    group_by(pie.id) %>%
+    fill(bival.start, ptt, inr, inr.before) %>%
+    filter(!is.na(inr),
+           !is.na(ptt)) %>%
+    mutate(duration = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+           inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before * 100) %>%
+    arrange(pie.id, lab.datetime)
+
+inr_ptt_exact <- inner_join(ptt, inr, by = c("pie.id", "lab.datetime")) %>%
+    arrange(pie.id, lab.datetime) %>%
+    group_by(pie.id) %>%
+    fill(bival.start, ptt, inr, inr.before) %>%
+    filter(!is.na(inr),
+           !is.na(ptt)) %>%
+    mutate(duration = as.numeric(difftime(lab.datetime, bival.start, units = "hours")),
+           inr.change = inr - inr.before,
+           inr.change.pct = inr.change / inr.before * 100) %>%
+    arrange(pie.id, lab.datetime)
+```
+
+```{r, fig.cap="Relationship between PTT and percent change in INR from baseline. For time points when both a PTT and INR were not reported, the missing values were extrapolated by carrying the last value forward."}
+ggplot(inr_ptt_fill, aes(x = ptt, y = inr.change.pct)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "lm") +
+    theme_bg()
+```
+
+```{r}
+lm(inr.change.pct ~ ptt, inr_ptt_fill) %>%
+    summary() %>%
+    broom::glance() %>%
+    knitr::kable(digits = 3, caption = "Linear model of percent change in INR relative to PTT")
+```
+
+```{r}
+lm(inr.change.pct ~ ptt, inr_ptt_fill) %>%
+    summary() %>%
+    broom::tidy() %>%
+    knitr::kable(digits = 3)
+```
+
+```{r, fig.cap="Relationship between PTT and percent change in INR from baseline using only values drawn at the same time points"}
+ggplot(inr_ptt_exact, aes(x = ptt, y = inr.change.pct)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "lm") +
+    theme_bg()
+```
+
+```{r}
+lm(inr.change.pct ~ ptt, inr_ptt_exact) %>%
+    summary() %>%
+    broom::glance() %>%
+    knitr::kable(digits = 3, caption = "Linear model of percent change in INR relative to PTT")
+```
+
+```{r}
+lm(inr.change.pct ~ ptt, inr_ptt_exact) %>%
+    summary() %>%
+    broom::tidy() %>%
+    knitr::kable(digits = 3)
+```
 
 ### Secondary Endpoints
 ```{r}
@@ -219,31 +338,65 @@ analyze.coags %>%
 
 ### Safety Endpoints
 ```{r events}
-vars <- names(analyze.bleed[-1])
-fvars <- c("major.bleed", "minor.bleed", "new.thrombosis")
+analyze.bleed %>%
+    ungroup() %>%
+    select(`Major Bleed` = major.bleed,
+           `Minor Bleed` = minor.bleed,
+           `New Thrombosis` = new.thrombosis) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Bleeding and Thrombosis Events")
+```
 
-tbl <- CreateTableOne(vars = vars, data = analyze.bleed, factorVars = fvars)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Bleeding and Thrombosis")
+```{r}
+analyze.bleed %>%
+    select(`Hgb drop` = hgb.drop,
+           `Hours from bivalirudin start to hgb drop` = bival.drop.diff,
+           `Hours from warfarin start to hgb drop` = warf.drop.diff) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    knitr::kable(digits = 2, caption = "Bleeding-related labs")
 ```
 
 ```{r prbc}
-vars <- names(analyze.prbc[-1])
-
-tbl <- CreateTableOne(vars = vars, data = analyze.prbc, factorVars = vars)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Blood Product Administration")
+analyze.prbc %>%
+    ungroup() %>%
+    select(PRBC = prbc,
+           FFP = ffp,
+           Platelets = platelet,
+           Cryoprecipitate = cryo) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Blood Product Administration")
 ```
 
 ```{r reversal}
-vars <- names(analyze.reversal[-1])
-
-tbl <- CreateTableOne(vars = vars, data = analyze.reversal, factorVars = vars)
-ptbl <- print(tbl, printToggle = FALSE)
-
-knitr::kable(ptbl, caption = "Reversal Agent Administration")
+analyze.reversal %>%
+    ungroup() %>%
+    select(Phytonadione = phytonadione,
+           `Factor VIIa` = `coagulation factor viia`,
+           PCC = `prothrombin complex`,
+           `Aminocaproic acid` = `aminocaproic acid`,
+           `Tranexamic acid` = `tranexamic acid`,
+           Fibrinogen = fibrinogen,
+           `Topical Thrombin` = `thrombin topical`) %>%
+    gather(variable, value) %>%
+    dmap_at("variable", fct_inorder) %>%
+    group_by(variable) %>%
+    summarize_at("value", funs(n = sum(.), total = sum(!is.na(.)), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
+    mutate(`%` = n / total * 100) %>%
+    select(variable, n, `%`, `n/a`) %>%
+    knitr::kable(digits = 2, caption = "Reversal Agent Administration")
 ```
 
 ## Exploratory Figures
