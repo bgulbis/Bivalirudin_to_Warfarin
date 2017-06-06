@@ -16,7 +16,9 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```{r setup, include=FALSE}
 # library(BGTools)
 library(tidyverse)
+library(purrrlyr)
 library(lubridate)
+library(stringr)
 library(forcats)
 library(grid)
 library(gridExtra)
@@ -32,7 +34,6 @@ tmp <- dirr::get_rds("Analysis")
 
 ### Baseline Characteristics
 ```{r demographics}
-
 analyze.demographics %>%
     select(Age = age,
            `Length of Stay` = los) %>%
@@ -197,15 +198,23 @@ analyze.ptt.perc %>%
 analyze.coags %>%
     select(inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
     gather(key, inr, inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    mutate(bival = if_else(key %in% c("inr.before", "inr.txptt"), "Bivalirudin Initiation", "Bivalirudin Cessation")) %>%
+    dmap_at("key", str_replace_all, pattern = "\\.stop", replacement = "") %>%
+    dmap_at("key", str_replace_all, pattern = c("inr.before" = "Before", "inr.txptt" = "After", "inr.after" = "After")) %>%
     filter(!is.na(inr)) %>%
-    dmap_at("key", fct_inorder) %>%
+    dmap_at(c("key", "bival"), fct_inorder) %>%
     ggplot(aes(x = key, y = inr)) +
     geom_hline(yintercept = 2, color = "light gray") +
     geom_hline(yintercept = 3, color = "light gray") +
     geom_boxplot() +
-    scale_x_discrete("Time point relative to bivalirudin", labels = c("Before Initiation", "After Initiation", "Before Cessation", "After Cessation")) +
+    facet_wrap(~bival) +
+    scale_x_discrete("Time point relative to bivalirudin infusion") +
     ylab("INR") +
     theme_bg(xticks = FALSE)
+
+ggsave("figs/figure-1_boxplot_primary-endpoint.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+
+ggsave("figs/figure-1_boxplot_primary-endpoint.pdf", device = "pdf", width = 170, height = 85, units = "mm")
 ```
 
 ```{r}
@@ -772,21 +781,26 @@ print(graph)
 ```
 
 ### Scatter Plots
-```{r fig.cap="PTT vs. INR"}
-df <- filter(analyze.labs.serial, lab == "inr" | lab == "ptt",
-             lab.datetime >= bival.start,
-             lab.datetime <= warf.start) %>%
+```{r fig.cap="Change in INR relative to change in PTT prior to warfarin initiation"}
+df <- analyze.labs.serial %>%
+    filter(lab == "inr" | lab == "ptt",
+           lab.datetime >= bival.start,
+           lab.datetime <= warf.start) %>%
     select(pie.id:result) %>%
     group_by(pie.id, lab.datetime) %>%
     spread(lab, result) %>%
     filter(!is.na(inr), !is.na(ptt))
 
-g <- ggplot(df, aes(x = ptt, y = inr)) +
-    geom_point(alpha = 0.3) +
-    geom_smooth(method = "lm") +
-    theme(legend.position = "none")
+ggplot(df, aes(x = ptt, y = inr)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "lm", color = "black") +
+    xlab("PTT (seconds)") +
+    ylab("INR") +
+    theme_bg()
 
-g
+ggsave("figs/figure-2_scatter_ptt-inr-relationship.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+
+ggsave("figs/figure-2_scatter_ptt-inr-relationship.pdf", device = "pdf", width = 170, height = 85, units = "mm")
 ```
 
 ```{r}
