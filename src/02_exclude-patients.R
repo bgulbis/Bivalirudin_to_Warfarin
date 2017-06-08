@@ -3,7 +3,9 @@
 ## Check patients for exclusion criteria
 ##
 
-source("library.R")
+source("src/01_include-patients.R")
+library(stringr)
+library(zoo)
 
 ## exclusion criteria
 ## number of hours for warfarin and bivalirudin overlap
@@ -13,7 +15,7 @@ ec.overlap <- 72
 ec.inr <- 1
 
 ## read in medication data and tidy variables
-raw.meds <- list.files("Data", pattern="^medications", full.names=TRUE) %>%
+raw.meds <- list.files("data/raw", pattern="^medications", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -88,7 +90,7 @@ pts.eligible <- left_join(tmp.bival.start, tmp.bival.stop, by="pie.id") %>%
     filter(overlap >= ec.overlap) 
 
 ## check for any alternate anticoagulants during transition interval
-ref.med.class <- read.csv("Lookup/drug_categories.csv", colClasses = "character") %>%
+ref.med.class <- read.csv("data/external/lookup_drug-categories.csv", colClasses = "character") %>%
     transmute(med.class = factor(Drug.Catalog),
               med = str_to_lower(Generic.Drug.Name))
 
@@ -149,7 +151,7 @@ levels.labs <- c("scr", "ast", "alt", "t.bili", "hct", "hgb", "inr", "platelet",
                  "ptt", "ur.preg", "ser.preg")
 
 ## read in lab data
-raw.labs <- list.files("Data", pattern="^labs", full.names=TRUE) %>%
+raw.labs <- list.files("data/raw", pattern="^labs", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -216,7 +218,7 @@ excl.preg <- filter(raw.labs, lab == "ur.preg" | lab == "ser.preg",
 pts.include <- filter(pts.include, !(pie.id %in% excl.preg$pie.id))
 
 ## read in diagnosis codes
-raw.diagnosis <- list.files("Data", pattern="^diagnosis", full.names=TRUE) %>%
+raw.diagnosis <- list.files("data/raw", pattern="^diagnosis", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -225,10 +227,10 @@ raw.diagnosis <- list.files("Data", pattern="^diagnosis", full.names=TRUE) %>%
               diag.primary = factor(Diagnosis.Code.Sequence))
 
 ## read in exclusion codes
-ref.excl.codes <- read.csv("Lookup/exclusion_codes.csv", colClasses = "character")
+ref.excl.codes <- read.csv("data/external/lookup_exclusion-codes.csv", colClasses = "character")
 
 ## read in ICD9-CCS codes
-ref.ccs.diag <- read.csv("Lookup/icd9_ccs_diagnosis.csv", colClasses="character") %>%
+ref.ccs.diag <- read.csv("data/external/lookup_icd9-diagnosis-codes.csv", colClasses="character") %>%
     transmute(ccs.code = as.numeric(CCS.CATEGORY),
               icd9.code = ICD9.CODE.FRMT) 
 

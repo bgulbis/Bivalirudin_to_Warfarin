@@ -27,7 +27,7 @@ library(tableone)
 library(themebg)
 library(broom)
 
-tmp <- dirr::get_rds("Analysis")
+tmp <- dirr::get_rds("../data/final")
 ```
 
 ## Results
@@ -187,6 +187,7 @@ analyze.ptt.perc %>%
            `Above Goal PTT Range` = perc.time.high) %>%
     gather(variable, value) %>%
     dmap_at("variable", fct_inorder) %>%
+    dmap_at("value", ~ .x * 100) %>%
     group_by(variable) %>%
     summarize_at("value", funs(n = sum(!is.na(.)), min, max, mean, sd, median, `25th` = quantile(., probs = 0.25), `75th` = quantile(., probs = 0.75), `n/a` = sum(is.na(.))), na.rm = TRUE) %>%
     knitr::kable(digits = 2, caption = "Percent of Time PTT Values were In-Range")
@@ -212,9 +213,9 @@ analyze.coags %>%
     ylab("INR") +
     theme_bg(xticks = FALSE)
 
-ggsave("figs/figure-1_boxplot_primary-endpoint.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+ggsave("../figs/figure-1_boxplot_primary-endpoint.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
 
-ggsave("figs/figure-1_boxplot_primary-endpoint.pdf", device = "pdf", width = 170, height = 85, units = "mm")
+ggsave("../figs/figure-1_boxplot_primary-endpoint.pdf", device = "pdf", width = 170, height = 85, units = "mm")
 ```
 
 ```{r}
@@ -781,7 +782,7 @@ print(graph)
 ```
 
 ### Scatter Plots
-```{r fig.cap="Change in INR relative to change in PTT prior to warfarin initiation"}
+```{r fig.cap="INR value relative to PTT value after bivalirudin initiation but prior to warfarin initiation"}
 df <- analyze.labs.serial %>%
     filter(lab == "inr" | lab == "ptt",
            lab.datetime >= bival.start,
@@ -798,9 +799,9 @@ ggplot(df, aes(x = ptt, y = inr)) +
     ylab("INR") +
     theme_bg()
 
-ggsave("figs/figure-2_scatter_ptt-inr-relationship.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+ggsave("../figs/figure-2_scatter_ptt-inr-relationship.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
 
-ggsave("figs/figure-2_scatter_ptt-inr-relationship.pdf", device = "pdf", width = 170, height = 85, units = "mm")
+ggsave("../figs/figure-2_scatter_ptt-inr-relationship.pdf", device = "pdf", width = 170, height = 85, units = "mm")
 ```
 
 ```{r}

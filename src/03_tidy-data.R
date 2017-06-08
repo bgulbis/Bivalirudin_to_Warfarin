@@ -3,13 +3,14 @@
 ## Perform data tidying
 ##
 
-source("library.R")
+source("src/02_exclude-patients.R")
+library(MESS)
 
 ## set the units to use for reporting differences in time
 units.diff <- "days"
 
 ## read in demographics data
-raw.demographics <- list.files("Data", pattern="^demographics", full.names=TRUE) %>%
+raw.demographics <- list.files("data/raw", pattern="^demographics", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -26,7 +27,7 @@ data.demograph <- inner_join(raw.demographics, pts.include, by="pie.id") %>%
            overlap = as.numeric(difftime(bival.stop, warf.start, units=units.diff)))
 
 ## read in height and weight data
-raw.htwt <- list.files("Data", pattern="^ht_wt", full.names=TRUE) %>%
+raw.htwt <- list.files("data/raw", pattern="^ht_wt", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -57,7 +58,7 @@ tmp.weight <- raw.htwt %>%
 data.demograph <- inner_join(data.demograph, tmp.weight, by="pie.id")
 
 ## find warfarin indication and goal range
-raw.warfarin <- list.files("Data", pattern="^warfarin", full.names=TRUE) %>%
+raw.warfarin <- list.files("data/raw", pattern="^warfarin", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -90,7 +91,7 @@ tmp.warf.indict <- raw.warfarin %>%
 data.demograph <- inner_join(data.demograph, tmp.warf.indict, by="pie.id")
 
 ## look for medications given during hospitalization
-ref.concom.meds <- read.csv("Lookup/drug_class_lookup.csv", colClasses="character") %>%
+ref.concom.meds <- read.csv("data/external/lookup_drug-classes.csv", colClasses="character") %>%
     mutate(type = factor(type),
            label = factor(label))
 
@@ -118,7 +119,7 @@ data.meds <- select(raw.meds, pie.id, med) %>%
     spread(label, value, fill=FALSE, drop=FALSE)
 
 ## look for pmh
-ref.pmh.codes <- read.csv("Lookup/pmh_code_lookup.csv", colClasses="character") %>%
+ref.pmh.codes <- read.csv("data/external/lookup_pmh-codes.csv", colClasses="character") %>%
     mutate(disease.state = factor(disease.state),
            type = factor(type))
 
@@ -151,7 +152,7 @@ data.pmh <- raw.diagnosis %>%
     mutate_each(funs(ifelse(is.na(.), FALSE, .))) 
 
 ## get home meds data
-raw.home.meds <- list.files("Data", pattern="^home_meds", full.names=TRUE) %>%
+raw.home.meds <- list.files("data/raw", pattern="^home_meds", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -219,7 +220,7 @@ data.home.meds <- bind_rows(data.home.meds, tmp.hm) %>%
     filter(pie.id %in% pts.include$pie.id)
 
 ## check if procedure in 48 hours prior to bival initiation
-raw.procedures <- list.files("Data", pattern="^procedures", full.names=TRUE) %>%
+raw.procedures <- list.files("data/raw", pattern="^procedures", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -255,7 +256,7 @@ check.procedure <- function(pid, date, time.back = 0, time.forward = 0) {
 }
 
 ## get the procedure descriptions
-ref.ccs.proc <- read.csv("Lookup/icd9_ccs_procedure.csv", colClasses="character") %>%
+ref.ccs.proc <- read.csv("data/external/lookup_icd9-procedure-codes.csv", colClasses="character") %>%
     transmute(proc.code = ICD9.CODE.FRMT,
               proc.desc = ICD.9.CM.CODE.DESCRIPTION,
               proc.ccs.code = as.numeric(CCS.CATEGORY),
@@ -328,7 +329,7 @@ tmp.labs.serial <- raw.labs %>%
     mutate(lab = factor(lab, levels=tmp.labs),
            result = as.numeric(result)) %>%
     group_by(pie.id, lab) %>%
-    arrange(lab.datetime) %>%
+    arrange(pie.id, lab.datetime) %>%
     mutate(time.diff = as.numeric(difftime(lab.datetime, first(lab.datetime), units="hours")))
 
 data.labs.serial <- tmp.labs.serial %>%
@@ -344,7 +345,7 @@ data.labs.serial <- tmp.labs.serial %>%
               time.wt.avg = auc(time.diff, result) / last(time.diff))
 
 ## get HIT labs
-raw.hit <- list.files("Data", pattern="^hit", full.names=TRUE) %>%
+raw.hit <- list.files("data/raw", pattern="^hit", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -369,7 +370,9 @@ tmp.hit <- raw.hit %>%
 data.manual.hit <- select(data.demograph, pie.id, fin) %>%
     inner_join(tmp.hit, by="pie.id")
 
-write.csv(select(data.manual.hit, -pie.id), "SRA_Patients.csv", row.names = FALSE)
+data.manual.hit %>%
+    select(-pie.id) %>%
+    write_csv("data/external/manual_sra-patients.csv")
 
 ## reversal agents
 tmp.reversal <- ref.concom.meds %>%
@@ -396,7 +399,7 @@ data.reversal <- raw.meds %>%
     spread(med, value, fill=FALSE, drop=FALSE) 
 
 ## blood products
-raw.blood <- list.files("Data", pattern="^blood[^_]", full.names=TRUE) %>%
+raw.blood <- list.files("data/raw", pattern="^blood[^_]", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -472,7 +475,7 @@ data.blood <- raw.blood %>%
 
 ## radiology orders
 ## look for any orders which occur after bival start which may require manual review
-raw.rad <- list.files("Data", pattern="^radiology", full.names=TRUE) %>%
+raw.rad <- list.files("data/raw", pattern="^radiology", full.names=TRUE) %>%
     lapply(read.csv, colClasses="character") %>%
     bind_rows %>%
     transmute(pie.id = PowerInsight.Encounter.Id,
@@ -488,4 +491,6 @@ tmp.rad <- raw.rad %>%
 data.manual.rad <- select(data.demograph, pie.id, fin) %>%
     inner_join(tmp.rad, by="pie.id")
 
-write.csv(select(data.manual.rad, -pie.id), "Diagnostic_Scans.csv", row.names = FALSE)
+data.manual.rad %>%
+    select(-pie.id) %>%
+    write_csv("data/external/manual_diagnostic-scans.csv")
