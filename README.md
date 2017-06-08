@@ -18,4 +18,4 @@ Specific Aims
 Results
 -------
 
--   [Manuscript Data](https://bgulbis.github.io/Bivalirudin_to_Warfarin/report/manscript_data.html)
+-   [Manuscript Data](https://bgulbis.github.io/Bivalirudin_to_Warfarin/report/manuscript_data.html)
