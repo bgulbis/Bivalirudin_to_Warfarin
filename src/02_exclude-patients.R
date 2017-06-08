@@ -3,7 +3,7 @@
 ## Check patients for exclusion criteria
 ##
 
-source("01_include-patients.R")
+source("src/01_include-patients.R")
 library(stringr)
 library(zoo)
 

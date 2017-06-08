@@ -2,7 +2,7 @@
 # 
 # read in manually collected data
 
-source("03_tidy-data.R")
+source("src/03_tidy-data.R")
 
 tmp.fins <- select(data.demograph, pie.id, fin)
 

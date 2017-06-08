@@ -3,7 +3,7 @@
 ## Perform data tidying
 ##
 
-source("02_exclude-patients.R")
+source("src/02_exclude-patients.R")
 library(MESS)
 
 ## set the units to use for reporting differences in time

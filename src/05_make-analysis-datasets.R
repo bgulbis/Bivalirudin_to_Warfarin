@@ -4,7 +4,7 @@
 ## perform data analysis
 ##
 
-source("04_merge-manual-data.R")
+source("src/04_merge-manual-data.R")
 library(purrrlyr)
 
 ## Analyze PTT and INR data 
