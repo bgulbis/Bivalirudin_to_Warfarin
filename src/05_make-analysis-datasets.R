@@ -253,7 +253,7 @@ data.new.thrmb <- man.rad %>%
 tmp.labs.ptt <- raw.labs %>%
     inner_join(pts.include, by="pie.id") %>%
     filter(lab.datetime >= bival.start,
-           lab.datetime <= bival.stop + hours(12),
+           lab.datetime <= bival.stop,
            lab == "ptt") %>%
     mutate(lab = factor(lab, levels=tmp.labs),
            result = as.numeric(result)) %>%
