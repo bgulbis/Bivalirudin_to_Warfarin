@@ -795,7 +795,7 @@ df <- analyze.labs.serial %>%
 ggplot(df, aes(x = ptt, y = inr)) +
     geom_point(shape = 1) +
     geom_smooth(method = "lm", color = "black") +
-    xlab("PTT (seconds)") +
+    xlab("aPTT (seconds)") +
     ylab("INR") +
     theme_bg()
 
