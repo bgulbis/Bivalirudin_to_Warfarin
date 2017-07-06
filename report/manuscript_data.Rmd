@@ -205,17 +205,86 @@ analyze.coags %>%
     filter(!is.na(inr)) %>%
     dmap_at(c("key", "bival"), fct_inorder) %>%
     ggplot(aes(x = key, y = inr)) +
-    geom_hline(yintercept = 2, color = "light gray") +
-    geom_hline(yintercept = 3, color = "light gray") +
+    # geom_hline(yintercept = 2, color = "light gray") +
+    # geom_hline(yintercept = 3, color = "light gray") +
+    # geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "grey95") +
     geom_boxplot() +
+    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
     facet_wrap(~bival) +
     scale_x_discrete("Time point relative to bivalirudin infusion") +
     ylab("INR") +
     theme_bg(xticks = FALSE)
 
-ggsave("../figs/figure-1_boxplot_primary-endpoint.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+ggsave("../figs/figure-1_boxplot_primary-endpoint_no-shading.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
 
-ggsave("../figs/figure-1_boxplot_primary-endpoint.pdf", device = "pdf", width = 170, height = 85, units = "mm")
+# ggsave("../figs/figure-1_boxplot_primary-endpoint.pdf", device = "pdf", width = 170, height = 85, units = "mm")
+```
+
+```{r, fig.cap="Distribution of INR values at key time points relative to bivalirudin initiation and cessation"}
+analyze.coags %>%
+    select(inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    gather(key, inr, inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    mutate(bival = if_else(key %in% c("inr.before", "inr.txptt"), "Bivalirudin Initiation", "Bivalirudin Cessation")) %>%
+    dmap_at("key", str_replace_all, pattern = "\\.stop", replacement = "") %>%
+    dmap_at("key", str_replace_all, pattern = c("inr.before" = "Before", "inr.txptt" = "After", "inr.after" = "After")) %>%
+    filter(!is.na(inr)) %>%
+    dmap_at(c("key", "bival"), fct_inorder) %>%
+    ggplot(aes(x = key, y = inr)) +
+    # geom_hline(yintercept = 2, color = "light gray") +
+    # geom_hline(yintercept = 3, color = "light gray") +
+    geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "grey95") +
+    geom_boxplot() +
+    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
+    facet_wrap(~bival) +
+    scale_x_discrete("Time point relative to bivalirudin infusion") +
+    ylab("INR") +
+    theme_bg(xticks = FALSE)
+
+ggsave("../figs/figure-1_boxplot_primary-endpoint_shaded.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
+```
+
+```{r, fig.cap="Distribution of INR values at key time points relative to bivalirudin initiation and cessation"}
+analyze.coags %>%
+    select(inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    gather(key, inr, inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    mutate(bival = if_else(key %in% c("inr.before", "inr.txptt"), "Bivalirudin Initiation", "Bivalirudin Cessation")) %>%
+    dmap_at("key", str_replace_all, pattern = "\\.stop", replacement = "") %>%
+    dmap_at("key", str_replace_all, pattern = c("inr.before" = "Before", "inr.txptt" = "After", "inr.after" = "After")) %>%
+    filter(!is.na(inr)) %>%
+    dmap_at(c("key", "bival"), fct_inorder) %>%
+    ggplot(aes(x = key, y = inr)) +
+    # geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "light gray") +
+    geom_boxplot() +
+    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
+    facet_wrap(~bival) +
+    scale_x_discrete("Time point relative to bivalirudin infusion") +
+    ylab("INR") +
+    theme_bg(xticks = FALSE) +
+    theme(axis.line = element_line(color = "black"), axis.text = element_text(color = "black"), axis.title = element_text(color = "black"), strip.text = element_text(color = "black"), axis.ticks = element_line(color = "black"))
+
+ggsave("../figs/figure-1_boxplot_primary-endpoint_no-shading-bw.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 600, compression = "lzw")
+```
+
+```{r, fig.cap="Distribution of INR values at key time points relative to bivalirudin initiation and cessation"}
+analyze.coags %>%
+    select(inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    gather(key, inr, inr.before, inr.txptt, inr.before.stop, inr.after.stop) %>%
+    mutate(bival = if_else(key %in% c("inr.before", "inr.txptt"), "Bivalirudin Initiation", "Bivalirudin Cessation")) %>%
+    dmap_at("key", str_replace_all, pattern = "\\.stop", replacement = "") %>%
+    dmap_at("key", str_replace_all, pattern = c("inr.before" = "Before", "inr.txptt" = "After", "inr.after" = "After")) %>%
+    filter(!is.na(inr)) %>%
+    dmap_at(c("key", "bival"), fct_inorder) %>%
+    ggplot(aes(x = key, y = inr)) +
+    geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "light gray") +
+    geom_boxplot() +
+    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
+    facet_wrap(~bival) +
+    scale_x_discrete("Time point relative to bivalirudin infusion") +
+    ylab("INR") +
+    theme_bg(xticks = FALSE) +
+    theme(axis.line = element_line(color = "black"), axis.text = element_text(color = "black"), axis.title = element_text(color = "black"), strip.text = element_text(color = "black"), axis.ticks = element_line(color = "black"))
+
+ggsave("../figs/figure-1_boxplot_primary-endpoint_shaded-bw.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 600, compression = "lzw")
 ```
 
 ```{r}
@@ -795,13 +864,16 @@ df <- analyze.labs.serial %>%
 ggplot(df, aes(x = ptt, y = inr)) +
     geom_point(shape = 1) +
     geom_smooth(method = "lm", color = "black") +
+    ggtitle("File 4. Figure 2. Corresponding Author: Gulbis, Brian") +
     xlab("aPTT (seconds)") +
     ylab("INR") +
-    theme_bg()
+    theme_bg() +
+    theme(axis.line = element_line(color = "black"), axis.text = element_text(color = "black"), axis.title = element_text(color = "black"), strip.text = element_text(color = "black"), axis.ticks = element_line(color = "black"))
 
-ggsave("../figs/figure-2_scatter_ptt-inr-relationship.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 300, compression = "lzw")
 
-ggsave("../figs/figure-2_scatter_ptt-inr-relationship.pdf", device = "pdf", width = 170, height = 85, units = "mm")
+ggsave("../figs/figure-2_scatter_ptt-inr-relationship_bw.tiff", device = "tiff", width = 170, height = 85, units = "mm", dpi = 600, compression = "lzw")
+
+# ggsave("../figs/figure-2_scatter_ptt-inr-relationship.pdf", device = "pdf", width = 170, height = 85, units = "mm")
 ```
 
 ```{r}
