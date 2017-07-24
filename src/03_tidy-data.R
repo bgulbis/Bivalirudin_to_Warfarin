@@ -138,7 +138,11 @@ tmp.pmh.icd9 <- bind_rows(tmp.ccs, tmp.icd9) %>%
     select(disease.state, icd9.code) %>%
     group_by(disease.state)
 
-write_csv(tmp.pmh.icd9, "data/external/reference_icd9_pmh.csv")
+tmp_icd9_desc <- tmp.pmh.icd9 %>%
+    rowwise() %>%
+    mutate(icd9.desc = icd_explain(icd9.code))
+
+write_csv(tmp_icd9_desc, "data/external/reference_icd9_pmh.csv")
 
 ## create table of patients with the desired disease states
 data.pmh <- raw.diagnosis %>%

@@ -6,6 +6,7 @@
 source("src/01_include-patients.R")
 library(stringr)
 library(zoo)
+library(icd)
 
 ## exclusion criteria
 ## number of hours for warfarin and bivalirudin overlap
@@ -249,7 +250,11 @@ tmp.excl.icd9 <- bind_rows(tmp.ccs, tmp.icd9) %>%
     select(disease.state, icd9.code) %>%
     group_by(disease.state)
 
-write_csv(tmp.excl.icd9, "data/external/reference_icd9_exclusion.csv")
+tmp_icd9_excl_desc <- tmp.excl.icd9 %>%
+    rowwise() %>%
+    mutate(icd9.desc = icd_explain(icd9.code))
+
+write_csv(tmp_icd9_excl_desc, "data/external/reference_icd9_exclusion.csv")
 
 ## check for exclusions diagnosis: pregnant, hepatitis, cirrhosis, anti-phospholipid
 ## antibody, lupus anticoagulant
