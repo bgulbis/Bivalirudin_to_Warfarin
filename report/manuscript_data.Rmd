@@ -255,7 +255,7 @@ analyze.coags %>%
     ggplot(aes(x = key, y = inr)) +
     # geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "light gray") +
     geom_boxplot() +
-    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
+    ggtitle("File 3. Figure 1. Corresponding Author: Gulbis, Brian") +
     facet_wrap(~bival) +
     scale_x_discrete("Time point relative to bivalirudin infusion") +
     ylab("INR") +
@@ -277,7 +277,7 @@ analyze.coags %>%
     ggplot(aes(x = key, y = inr)) +
     geom_rect(aes(xmin = 0, xmax = 3, ymin = 2, ymax = 3), fill = "light gray") +
     geom_boxplot() +
-    ggtitle("File 1. Figure 1. Corresponding Author: Gulbis, Brian") +
+    ggtitle("File 3. Figure 1. Corresponding Author: Gulbis, Brian") +
     facet_wrap(~bival) +
     scale_x_discrete("Time point relative to bivalirudin infusion") +
     ylab("INR") +
