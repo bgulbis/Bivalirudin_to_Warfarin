@@ -249,6 +249,8 @@ tmp.excl.icd9 <- bind_rows(tmp.ccs, tmp.icd9) %>%
     select(disease.state, icd9.code) %>%
     group_by(disease.state)
 
+write_csv(tmp.excl.icd9, "data/external/reference_icd9_exclusion.csv")
+
 ## check for exclusions diagnosis: pregnant, hepatitis, cirrhosis, anti-phospholipid
 ## antibody, lupus anticoagulant
 excl.diag <- filter(raw.diagnosis, diag.code %in% tmp.excl.icd9$icd9.code,
