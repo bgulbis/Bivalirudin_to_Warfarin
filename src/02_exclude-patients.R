@@ -252,6 +252,7 @@ tmp.excl.icd9 <- bind_rows(tmp.ccs, tmp.icd9) %>%
 
 tmp_icd9_excl_desc <- tmp.excl.icd9 %>%
     rowwise() %>%
+    filter(icd_is_defined(icd9.code)) %>%
     mutate(icd9.desc = icd_explain(icd9.code))
 
 write_csv(tmp_icd9_excl_desc, "data/external/reference_icd9_exclusion.csv")
